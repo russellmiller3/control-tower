@@ -8,7 +8,7 @@ When you spawn multiple agents in parallel, the expensive failure mode is not "I
 
 ## What you get
 
-- **Rescue-first web board at `localhost:9999`** — headline positioning, rescue queue, run health, agent cards, and detail inspector
+- **Rescue-first web board at `localhost:9999`** — rescue queue, run health, agent cards, and detail inspector
 - **Rescue Queue** — ranks agents that are silent, dormant, or showing problem signals
 - **Rescue Inspector** — click an agent to see its goal, timeline, diagnosis, and recovery actions
 - **Supervisor inspect button** — writes a plain-English check request back to the right pulse log
@@ -24,20 +24,20 @@ When you spawn multiple agents in parallel, the expensive failure mode is not "I
   - **`pulse-enforcer-subagent`** — refuses to let a subagent stop without emitting at least one narrative pulse
   - **`parallel-when-possible`** — if 1 agent is in flight while 2+ parallel-safe phases sit unstarted, nudges the orchestrator to spawn the rest
 
-## Positioning
+## Why this exists
 
-The sharp paid feature is **agent rescue**, not generic observability.
+Parallel coding agents are powerful, but they are easy to lose track of.
 
-Competitors can show sessions, costs, search, and replay. This project leads
-with the operational pain: a solo developer or small team kicked off several
-agents and now needs to know which one needs human attention first.
+One agent may be writing tests, another may be fixing docs, and another may
+have gone quiet after touching risky code. Agent Rescue Board gives you one
+place to see the live work and spot the run that needs help.
 
-That makes the value concrete:
+The goal is simple:
 
-- Find the stuck run.
-- Explain why it looks stuck.
-- Package the next inspection prompt.
-- Keep the developer shipping instead of spelunking logs.
+- Keep working agents visible.
+- Put stalled agents at the top.
+- Preserve the goal and latest activity.
+- Send a Supervisor inspection request without hunting through logs.
 
 ## How it works (30 seconds)
 
