@@ -63,13 +63,78 @@
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 10px;
-    padding: 16px;
+    padding: 0;
     border-left: 4px solid var(--line);
+    overflow: hidden;
   }
   .agent.working { border-left-color: var(--green); }
   .agent.silent { border-left-color: var(--yellow); }
-  .agent.dormant { border-left-color: var(--dim); opacity: 0.7; }
+  .agent.dormant { border-left-color: var(--dim); opacity: 0.85; }
   .agent.completed { border-left-color: var(--cyan); }
+  details.agent > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto;
+    grid-gap: 10px;
+    align-items: center;
+  }
+  details.agent > summary::-webkit-details-marker { display: none; }
+  details.agent > summary::after {
+    content: "▸";
+    color: var(--dim);
+    font-size: 11px;
+    transition: transform 0.15s;
+    grid-column: 5;
+  }
+  details.agent[open] > summary::after { transform: rotate(90deg); }
+  details.agent > summary:hover { background: var(--panel-2); }
+  details.agent .body {
+    padding: 0 16px 14px 16px;
+    border-top: 1px solid var(--line);
+    margin-top: 0;
+  }
+  .summary-name { font-family: ui-monospace, monospace; font-weight: 600; font-size: 14px; }
+  .summary-state {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .agent.working .summary-state { background: rgba(86, 211, 100, 0.15); color: var(--green); }
+  .agent.silent .summary-state { background: rgba(227, 179, 65, 0.15); color: var(--yellow); }
+  .agent.dormant .summary-state { background: rgba(110, 118, 129, 0.15); color: var(--dim); }
+  .agent.completed .summary-state { background: rgba(121, 192, 255, 0.15); color: var(--cyan); }
+  .summary-goal {
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .summary-last { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ping-btn {
+    background: var(--yellow);
+    color: #1a1305;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    grid-column: 4;
+  }
+  .ping-btn:hover { background: var(--accent); }
+  .ping-btn i { width: 12px; height: 12px; }
   .agent header.row {
     display: flex;
     align-items: baseline;
@@ -405,7 +470,7 @@
 
 <div class="legend">
   <span><span class="dot working"></span> working</span>
-  <span><span class="dot silent"></span> silent (3min+)</span>
+  <span><span class="dot silent"></span> gone dark (3min+)</span>
   <span><span class="dot dormant"></span> dormant (30min+)</span>
   <span><span class="dot completed"></span> completed</span>
   <span style="color: var(--green); display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="star"></i> shipped / green</span>
@@ -421,7 +486,7 @@
         <div class="stat"><div class="label">Agents</div><div class="value" id="stat-agents">0</div></div>
         <div class="stat"><div class="label">Working</div><div class="value" id="stat-working">0</div></div>
         <div class="stat"><div class="label">Completed</div><div class="value" id="stat-completed">0</div></div>
-        <div class="stat"><div class="label">Silent</div><div class="value" id="stat-silent">0</div></div>
+        <div class="stat"><div class="label">Gone dark</div><div class="value" id="stat-silent">0</div></div>
       </div>
     </div>
     <div class="panel">
@@ -499,7 +564,7 @@
       chip.className = 'chip ' + agent.state;
       const needsCheck = agent.state === 'silent';
       const actionHtml = needsCheck
-        ? '<span class="chip-action"><i data-lucide="search"></i>check</span>'
+        ? '<span class="chip-action"><i data-lucide="bell-ring"></i>ping</span>'
         : '';
       chip.innerHTML = ''
         + '<span class="dot ' + agent.state + '"></span>'
@@ -541,7 +606,7 @@
     } else if (remaining === 0) {
       headline = `All ${total} agent${total === 1 ? '' : 's'} completed — nothing remaining.`;
     } else if (silent > 0) {
-      headline = `${remaining} agent${remaining === 1 ? '' : 's'} remaining (${working} working, ${silent} silent — click silent chips to check).`;
+      headline = `${remaining} agent${remaining === 1 ? '' : 's'} remaining (${working} working, ${silent} gone dark — ping them from their card).`;
     } else if (working > 0) {
       headline = `${remaining} agent${remaining === 1 ? '' : 's'} remaining (${working} working, ${dormant} dormant).`;
     } else {
@@ -570,7 +635,7 @@
     } else {
       agentsEl.innerHTML = '';
       for (const agent of agents) {
-        const card = document.createElement('div');
+        const card = document.createElement('details');
         card.className = 'agent ' + agent.state;
         card.dataset.task = agent.task;
         const renderEvent = (ev) => {
@@ -583,26 +648,35 @@
             + '<div class="text">' + escapeHtml(ev.text) + '</div>'
             + '</div>';
         };
-        const visible = agent.events.slice(0, 4);
-        const hidden = agent.events.slice(4);
-        const visibleHtml = visible.map(renderEvent).join('');
-        const hiddenHtml = hidden.length === 0 ? '' : ''
-          + '<details class="events-more">'
-          + '<summary>show ' + hidden.length + ' older</summary>'
-          + '<div class="more-events">' + hidden.map(renderEvent).join('') + '</div>'
-          + '</details>';
-        card.innerHTML = ''
-          + '<header class="row">'
-          + '<span class="name">[' + escapeHtml(agent.task) + ']</span>'
-          + '<span class="state">' + agent.state + '</span>'
-          + '<span class="last">last emit: ' + relTime(agent.lastEmitMs, now) + '</span>'
-          + '</header>'
+        const allEvents = agent.events.map(renderEvent).join('');
+        const stateLabel = agent.state === 'silent' ? 'gone dark' : agent.state;
+        const pingHtml = agent.state === 'silent'
+          ? '<button class="ping-btn" data-ping="' + escapeHtml(agent.task) + '" title="Ask Claude to investigate this agent"><i data-lucide="bell-ring"></i>ping</button>'
+          : '';
+        const summaryHtml = ''
+          + '<span class="summary-name">[' + escapeHtml(agent.task) + ']</span>'
+          + '<span class="summary-state">' + stateLabel + '</span>'
+          + '<span class="summary-goal" title="' + escapeHtml(agent.goal) + '">' + escapeHtml(agent.goal) + '</span>'
+          + pingHtml
+          + '<span class="summary-last">' + relTime(agent.lastEmitMs, now) + '</span>';
+        const bodyHtml = ''
+          + '<div class="body">'
           + '<div class="goal">'
           + '<span class="goal-label">Goal</span>'
           + escapeHtml(agent.goal)
           + '</div>'
-          + '<div class="events">' + visibleHtml + '</div>'
-          + hiddenHtml;
+          + '<div class="events">' + allEvents + '</div>'
+          + '</div>';
+        card.innerHTML = '<summary>' + summaryHtml + '</summary>' + bodyHtml;
+        // Wire ping button to call check-status without toggling the details
+        const pingBtn = card.querySelector('.ping-btn');
+        if (pingBtn) {
+          pingBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            checkStatus(agent.task);
+          });
+        }
         agentsEl.appendChild(card);
       }
     }
