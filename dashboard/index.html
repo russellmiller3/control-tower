@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #14181d;
+    --panel-2: #1c2128;
+    --text: #d8dee9;
+    --dim: #6e7681;
+    --line: #2a2f37;
+    --green: #56d364;
+    --yellow: #e3b341;
+    --red: #f85149;
+    --cyan: #79c0ff;
+    --magenta: #d2a8ff;
+    --orange: #ffa657;
+    --accent: #ffb24d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 18px;
+    line-height: 1.5;
+  }
+  header.top {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .branch { font-family: ui-monospace, "JetBrains Mono", Consolas, monospace; font-size: 13px; color: var(--dim); }
+  .head { font-family: ui-monospace, monospace; font-size: 12px; color: var(--dim); margin-left: auto; }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    font-size: 12px;
+    color: var(--dim);
+    margin-bottom: 18px;
+    align-items: center;
+  }
+  .legend > span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 14px; height: 14px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dot.working { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot.silent { background: var(--yellow); }
+  .dot.dormant { background: var(--dim); }
+  .dot.completed { background: var(--cyan); }
+  .layout { display: grid; grid-template-columns: 1fr 340px; gap: 18px; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .agents { display: grid; gap: 16px; }
+  .agent {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    border-left: 4px solid var(--line);
+  }
+  .agent.working { border-left-color: var(--green); }
+  .agent.silent { border-left-color: var(--yellow); }
+  .agent.dormant { border-left-color: var(--dim); opacity: 0.7; }
+  .agent.completed { border-left-color: var(--cyan); }
+  .agent header.row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .agent .name {
+    font-size: 16px;
+    font-weight: 600;
+    font-family: ui-monospace, monospace;
+  }
+  .agent .state {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .agent.working .state { background: rgba(86, 211, 100, 0.15); color: var(--green); }
+  .agent.silent .state { background: rgba(227, 179, 65, 0.15); color: var(--yellow); }
+  .agent.dormant .state { background: rgba(110, 118, 129, 0.15); color: var(--dim); }
+  .agent.completed .state { background: rgba(121, 192, 255, 0.15); color: var(--cyan); }
+  .agent .last { font-size: 12px; color: var(--dim); margin-left: auto; }
+  .agent .goal {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .agent .goal-label {
+    font-size: 11px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .agent .events {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .event {
+    display: grid;
+    grid-template-columns: 72px 22px 1fr;
+    gap: 8px;
+    font-size: 13px;
+    padding: 4px 0;
+    align-items: center;
+  }
+  .event .when { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
+  .event .marker { text-align: center; display: inline-flex; align-items: center; justify-content: center; }
+  .event .marker i { width: 14px; height: 14px; }
+  .event.milestone .marker { color: var(--green); }
+  .event.problem .marker { color: var(--red); }
+  .event.milestone .text { color: var(--green); }
+  .event.problem .text { color: var(--red); }
+  .event .text { word-wrap: break-word; }
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+  .sidebar h2 {
+    font-size: 11px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .commits { display: flex; flex-direction: column; gap: 8px; }
+  .commit { font-size: 12px; line-height: 1.4; }
+  .commit .sha { font-family: ui-monospace, monospace; color: var(--orange); margin-right: 8px; }
+  .commit .when { color: var(--dim); font-size: 11px; margin-right: 6px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat { background: var(--panel-2); border-radius: 6px; padding: 10px; }
+  .stat .label { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat .value { font-size: 22px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .empty { color: var(--dim); font-size: 13px; padding: 14px; text-align: center; }
+  .strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+    user-select: none;
+  }
+  .chip:hover { background: var(--panel-2); border-color: var(--accent); }
+  .chip .name { font-family: ui-monospace, monospace; font-weight: 500; color: var(--text); }
+  .chip .age { color: var(--dim); font-size: 11px; }
+  .chip.working { border-color: rgba(86, 211, 100, 0.35); }
+  .chip.silent { border-color: rgba(227, 179, 65, 0.5); background: rgba(227, 179, 65, 0.07); }
+  .chip.silent:hover { background: rgba(227, 179, 65, 0.15); }
+  .chip.dormant { border-color: var(--line); opacity: 0.75; }
+  .chip.completed { border-color: rgba(121, 192, 255, 0.35); }
+  .chip .dot { width: 8px; height: 8px; }
+  .chip-action {
+    margin-left: 4px;
+    color: var(--yellow);
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .chip-action i { width: 11px; height: 11px; }
+  .toast {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .agent { scroll-margin-top: 18px; }
+  .overview {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+  }
+  .overview-headline {
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .progress-bar {
+    background: var(--panel-2);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--cyan));
+    transition: width 0.4s ease;
+  }
+  .overview-sub {
+    font-size: 12px;
+    color: var(--dim);
+    line-height: 1.6;
+  }
+  footer.about {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 18px;
+    background: rgba(11, 13, 16, 0.92);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid var(--line);
+    text-align: right;
+    font-size: 12px;
+    color: var(--dim);
+    z-index: 50;
+  }
+  footer.about a {
+    color: var(--cyan);
+    text-decoration: none;
+    margin-left: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  footer.about a i { width: 12px; height: 12px; }
+  footer.about a:hover { color: var(--accent); }
+  footer.about .title { color: var(--text); font-weight: 500; }
+  body { padding-bottom: 56px; }
+  details.events-more {
+    margin-top: 6px;
+    cursor: pointer;
+  }
+  details.events-more > summary {
+    list-style: none;
+    color: var(--dim);
+    font-size: 11px;
+    padding: 4px 0;
+    user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  details.events-more > summary::-webkit-details-marker { display: none; }
+  details.events-more > summary::before {
+    content: "▸ ";
+    display: inline-block;
+    transition: transform 0.15s ease;
+  }
+  details.events-more[open] > summary::before {
+    transform: rotate(90deg);
+  }
+  details.events-more > summary:hover { color: var(--cyan); }
+  details.events-more .more-events {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .connected {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    font-size: 11px;
+    color: var(--dim);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .connected .dot { width: 6px; height: 6px; }
+  .connected.live .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .connected.dead .dot { background: var(--red); }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Agent Dashboard</h1>
+  <span class="branch" id="branch">…</span>
+  <span class="head" id="head">…</span>
+</header>
+
+<div class="strip" id="strip"></div>
+
+<div class="overview" id="overview">
+  <div class="overview-headline" id="overview-headline">Loading…</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <div class="overview-sub" id="overview-sub"></div>
+</div>
+
+<div class="legend">
+  <span><span class="dot working"></span> working</span>
+  <span><span class="dot silent"></span> silent (3min+)</span>
+  <span><span class="dot dormant"></span> dormant (30min+)</span>
+  <span><span class="dot completed"></span> completed</span>
+  <span style="color: var(--green); display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="star"></i> shipped / green</span>
+  <span style="color: var(--red); display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="alert-triangle"></i> problem / failure</span>
+</div>
+
+<div class="layout">
+  <div class="agents" id="agents"><div class="empty">waiting for first pulse…</div></div>
+  <div class="sidebar">
+    <div class="panel">
+      <h2>Stats</h2>
+      <div class="stats">
+        <div class="stat"><div class="label">Agents</div><div class="value" id="stat-agents">0</div></div>
+        <div class="stat"><div class="label">Working</div><div class="value" id="stat-working">0</div></div>
+        <div class="stat"><div class="label">Completed</div><div class="value" id="stat-completed">0</div></div>
+        <div class="stat"><div class="label">Silent</div><div class="value" id="stat-silent">0</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Recent commits</h2>
+      <div class="commits" id="commits"><div class="empty">no commits yet</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer class="about">
+  <span class="title">Agent Dashboard</span> — built by Russell Miller
+  <a href="mailto:rmiller@zavient.com"><i data-lucide="mail"></i>rmiller@zavient.com</a>
+  <a href="https://www.linkedin.com/in/russellmiller" target="_blank" rel="noopener"><i data-lucide="linkedin"></i>LinkedIn</a>
+</footer>
+
+<div class="connected dead" id="connected"><span class="dot"></span><span id="connected-text">connecting…</span></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function relTime(ms, now) {
+    const sec = Math.floor((now - ms) / 1000);
+    if (sec < 5) return 'just now';
+    if (sec < 60) return sec + 's ago';
+    if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
+    return Math.floor(sec / 3600) + 'h ago';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function showToast(text) {
+    const t = $('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  function checkStatus(task) {
+    fetch('/api/check-status', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ task }),
+    }).then((r) => r.json()).then((j) => {
+      if (j.ok) showToast('Check requested for ' + task + ' — Claude will investigate.');
+      else showToast('Could not request check: ' + (j.error || 'unknown'));
+    }).catch((err) => showToast('Network error: ' + err.message));
+  }
+
+  function scrollToAgent(task) {
+    const sections = document.querySelectorAll('.agent');
+    for (const sec of sections) {
+      if (sec.dataset.task === task) {
+        sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        sec.style.outline = '2px solid var(--accent)';
+        setTimeout(() => sec.style.outline = '', 1200);
+        return;
+      }
+    }
+  }
+
+  function renderStrip(agents, now) {
+    const stripEl = $('strip');
+    if (agents.length === 0) {
+      stripEl.innerHTML = '<span style="color: var(--dim); font-size: 12px;">no agents yet</span>';
+      return;
+    }
+    stripEl.innerHTML = '';
+    for (const agent of agents) {
+      const chip = document.createElement('span');
+      chip.className = 'chip ' + agent.state;
+      const needsCheck = agent.state === 'silent';
+      const actionHtml = needsCheck
+        ? '<span class="chip-action"><i data-lucide="search"></i>check</span>'
+        : '';
+      chip.innerHTML = ''
+        + '<span class="dot ' + agent.state + '"></span>'
+        + '<span class="name">' + escapeHtml(agent.task) + '</span>'
+        + '<span class="age">' + relTime(agent.lastEmitMs, now) + '</span>'
+        + actionHtml;
+      chip.addEventListener('click', () => {
+        if (needsCheck) checkStatus(agent.task);
+        else scrollToAgent(agent.task);
+      });
+      stripEl.appendChild(chip);
+    }
+  }
+
+  function render(state) {
+    const now = state.now;
+    $('branch').textContent = state.branch || '(unknown branch)';
+    $('head').textContent = state.headLog || '(no commits)';
+
+    const agents = state.agents || [];
+    renderStrip(agents, now);
+
+    // Overview headline + progress bar
+    const total = agents.length;
+    const completed = agents.filter(a => a.state === 'completed').length;
+    const working = agents.filter(a => a.state === 'working').length;
+    const silent = agents.filter(a => a.state === 'silent').length;
+    const dormant = agents.filter(a => a.state === 'dormant').length;
+    const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+    let headline;
+    if (total === 0) {
+      headline = 'No agents yet — waiting for the first pulse.';
+    } else if (working > 0 && completed === 0) {
+      headline = `${working} agent${working === 1 ? '' : 's'} working — none completed yet.`;
+    } else if (working > 0) {
+      headline = `${completed} of ${total} agent${total === 1 ? '' : 's'} done, ${working} still working.`;
+    } else if (completed === total) {
+      headline = `All ${total} agent${total === 1 ? '' : 's'} completed.`;
+    } else if (silent > 0) {
+      headline = `${completed} of ${total} done. ${silent} silent (might need a check).`;
+    } else {
+      headline = `${completed} of ${total} done, ${dormant} dormant.`;
+    }
+    $('overview-headline').textContent = headline;
+    $('progress-fill').style.width = pct + '%';
+    const commitCount = (state.commits || []).length;
+    $('overview-sub').textContent = `${total} total agents · ${working} working · ${completed} completed · ${silent} silent · ${dormant} dormant · ${commitCount} recent commits in view`;
+    $('stat-agents').textContent = agents.length;
+    $('stat-working').textContent = agents.filter(a => a.state === 'working').length;
+    $('stat-completed').textContent = agents.filter(a => a.state === 'completed').length;
+    $('stat-silent').textContent = agents.filter(a => a.state === 'silent').length;
+
+    const agentsEl = $('agents');
+    if (agents.length === 0) {
+      agentsEl.innerHTML = '<div class="empty">no agents yet — waiting for first pulse</div>';
+    } else {
+      agentsEl.innerHTML = '';
+      for (const agent of agents) {
+        const card = document.createElement('div');
+        card.className = 'agent ' + agent.state;
+        card.dataset.task = agent.task;
+        const renderEvent = (ev) => {
+          let markerHtml = '';
+          if (ev.kind === 'milestone') markerHtml = '<i data-lucide="star"></i>';
+          else if (ev.kind === 'problem') markerHtml = '<i data-lucide="alert-triangle"></i>';
+          return '<div class="event ' + ev.kind + '">'
+            + '<div class="when">' + relTime(ev.ms, now) + '</div>'
+            + '<div class="marker">' + markerHtml + '</div>'
+            + '<div class="text">' + escapeHtml(ev.text) + '</div>'
+            + '</div>';
+        };
+        const visible = agent.events.slice(0, 4);
+        const hidden = agent.events.slice(4);
+        const visibleHtml = visible.map(renderEvent).join('');
+        const hiddenHtml = hidden.length === 0 ? '' : ''
+          + '<details class="events-more">'
+          + '<summary>show ' + hidden.length + ' older</summary>'
+          + '<div class="more-events">' + hidden.map(renderEvent).join('') + '</div>'
+          + '</details>';
+        card.innerHTML = ''
+          + '<header class="row">'
+          + '<span class="name">[' + escapeHtml(agent.task) + ']</span>'
+          + '<span class="state">' + agent.state + '</span>'
+          + '<span class="last">last emit: ' + relTime(agent.lastEmitMs, now) + '</span>'
+          + '</header>'
+          + '<div class="goal">'
+          + '<span class="goal-label">Goal</span>'
+          + escapeHtml(agent.goal)
+          + '</div>'
+          + '<div class="events">' + visibleHtml + '</div>'
+          + hiddenHtml;
+        agentsEl.appendChild(card);
+      }
+    }
+
+    const commits = state.commits || [];
+    const commitsEl = $('commits');
+    if (commits.length === 0) {
+      commitsEl.innerHTML = '<div class="empty">no commits yet</div>';
+    } else {
+      commitsEl.innerHTML = commits.map((c) => ''
+        + '<div class="commit">'
+        + '<span class="sha">' + escapeHtml(c.sha || '') + '</span>'
+        + '<span class="when">' + escapeHtml(c.when || '') + '</span>'
+        + escapeHtml(c.msg || '')
+        + '</div>'
+      ).join('');
+    }
+
+    // Re-render Lucide icons after DOM updates
+    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+  }
+
+  let evtSource;
+  function connect() {
+    evtSource = new EventSource('/api/stream');
+    evtSource.onopen = () => {
+      const el = $('connected');
+      el.classList.remove('dead');
+      el.classList.add('live');
+      $('connected-text').textContent = 'live';
+    };
+    evtSource.onerror = () => {
+      const el = $('connected');
+      el.classList.remove('live');
+      el.classList.add('dead');
+      $('connected-text').textContent = 'reconnecting…';
+    };
+    evtSource.onmessage = (ev) => {
+      try { render(JSON.parse(ev.data)); } catch (e) {}
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    connect();
+  });
+</script>
+</body>
+</html>

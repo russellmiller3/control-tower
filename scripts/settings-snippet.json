@@ -1,0 +1,23 @@
+{
+  "_comment": "Paste these entries into your existing ~/.claude/settings.json. Merge under hooks.PreToolUse and hooks.Stop. Do not replace the file wholesale if you have other hooks.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          { "type": "command", "command": "node ~/.claude/hooks/worktree-on-agent-spawn.mjs", "timeout": 4, "statusMessage": "Enforcing worktree isolation on Agent spawn..." },
+          { "type": "command", "command": "node ~/.claude/hooks/pulse-on-agent-activity.mjs", "timeout": 6, "statusMessage": "Pulse contract gate + baseline emit..." }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node ~/.claude/hooks/pulse-on-agent-activity.mjs", "timeout": 6, "statusMessage": "Emitting pulse for active agents..." },
+          { "type": "command", "command": "node ~/.claude/hooks/pulse-enforcer-subagent.mjs", "timeout": 4, "statusMessage": "Enforcing subagent pulse emission..." },
+          { "type": "command", "command": "node ~/.claude/hooks/parallel-when-possible.mjs", "timeout": 4, "statusMessage": "Checking for missed parallelism..." }
+        ]
+      }
+    ]
+  }
+}

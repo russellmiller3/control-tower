@@ -1,0 +1,17 @@
+# Local dev artifacts
+node_modules/
+*.log
+.DS_Store
+.idea/
+.vscode/
+
+# Local pulse log (if anyone runs the dashboard from inside this dir)
+agent-pulse.log
+
+# Backups from install.sh patching settings.json
+settings.json.bak-*
+
+# OS / editor noise
+Thumbs.db
+*.swp
+*~
