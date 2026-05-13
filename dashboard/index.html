@@ -571,9 +571,9 @@
     }).then((r) => r.json()).then((j) => {
       if (j.ok) {
         showToast(
-          'Asked Claude to check on [' + escapeHtml(task) + ']',
-          'A note was written to the agent pulse log. Claude will see it in their next reply ' +
-          '(or sooner if they were already mid-turn) and respond in chat with what they find — ' +
+          'Asked AI to check on [' + escapeHtml(task) + ']',
+          'A note was written to the agent pulse log. The AI driving this agent (Claude, Codex, ' +
+          'or whatever) will see it in their next reply and respond in chat with what they find — ' +
           'git status, recent commits on its branch, whether it crashed silently, etc. ' +
           'No action needed from you.',
           7000
@@ -582,7 +582,7 @@
         showToast('Request failed', escapeHtml(j.error || 'unknown error') + '. Try again or check the dashboard server logs.', 5000);
         if (btn) {
           btn.disabled = false;
-          btn.innerHTML = '<i data-lucide="message-circle-question"></i>ask claude';
+          btn.innerHTML = '<i data-lucide="message-circle-question"></i>ask AI';
           if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
         }
       }
@@ -590,7 +590,7 @@
       showToast('Network error', escapeHtml(err.message), 5000);
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="message-circle-question"></i>ask claude';
+        btn.innerHTML = '<i data-lucide="message-circle-question"></i>ask AI';
         if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
       }
     });
@@ -620,7 +620,7 @@
       chip.className = 'chip ' + agent.state;
       const needsCheck = agent.state === 'silent' || agent.state === 'dormant';
       const actionHtml = needsCheck
-        ? '<span class="chip-action"><i data-lucide="message-circle-question"></i>ask claude</span>'
+        ? '<span class="chip-action"><i data-lucide="message-circle-question"></i>ask AI</span>'
         : '';
       chip.innerHTML = ''
         + '<span class="dot ' + agent.state + '"></span>'
@@ -708,7 +708,7 @@
         const stateLabel = agent.state === 'silent' ? 'gone dark' : agent.state;
         const needsCheck = agent.state === 'silent' || agent.state === 'dormant';
         const pingHtml = needsCheck
-          ? '<button class="ping-btn" data-ping="' + escapeHtml(agent.task) + '" title="Write a note to the agent pulse log asking Claude (in chat) to investigate this agent — git status, recent commits, whether it crashed."><i data-lucide="message-circle-question"></i>ask claude</button>'
+          ? '<button class="ping-btn" data-ping="' + escapeHtml(agent.task) + '" title="Write a note to the agent pulse log asking the AI (in chat) to investigate this agent — git status, recent commits, whether it crashed."><i data-lucide="message-circle-question"></i>ask AI</button>'
           : '';
         const summaryHtml = ''
           + '<span class="summary-name">[' + escapeHtml(agent.task) + ']</span>'
