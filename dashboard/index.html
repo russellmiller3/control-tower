@@ -214,32 +214,75 @@
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 10px;
-    padding: 16px 18px;
+    padding: 18px 20px;
     margin-bottom: 18px;
   }
-  .overview-headline {
-    font-size: 17px;
-    font-weight: 500;
-    margin-bottom: 10px;
+  .overview-top {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .overview-big {
+    font-size: 24px;
+    font-weight: 600;
     color: var(--text);
+  }
+  .overview-big .done { color: var(--brightGreen, var(--green)); }
+  .overview-big .total { color: var(--dim); font-weight: 400; }
+  .overview-headline {
+    font-size: 14px;
+    color: var(--dim);
+    flex: 1;
   }
   .progress-bar {
     background: var(--panel-2);
-    height: 8px;
-    border-radius: 4px;
+    height: 10px;
+    border-radius: 5px;
     overflow: hidden;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    position: relative;
   }
   .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--green), var(--cyan));
     transition: width 0.4s ease;
   }
-  .overview-sub {
-    font-size: 12px;
+  .progress-pct {
+    position: absolute;
+    right: 8px;
+    top: -3px;
+    font-size: 11px;
     color: var(--dim);
-    line-height: 1.6;
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
   }
+  .overview-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 700px) { .overview-metrics { grid-template-columns: 1fr 1fr; } }
+  .metric {
+    background: var(--panel-2);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .metric .label {
+    font-size: 10px;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .metric .value {
+    font-size: 18px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric .value .delta { font-size: 12px; color: var(--green); margin-left: 4px; font-weight: 400; }
+  .metric .value .empty { color: var(--dim); font-size: 13px; font-weight: 400; }
   footer.about {
     position: fixed;
     bottom: 0;
@@ -324,9 +367,20 @@
 <div class="strip" id="strip"></div>
 
 <div class="overview" id="overview">
-  <div class="overview-headline" id="overview-headline">Loading…</div>
-  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-  <div class="overview-sub" id="overview-sub"></div>
+  <div class="overview-top">
+    <div class="overview-big" id="overview-big">— of —</div>
+    <div class="overview-headline" id="overview-headline">Loading…</div>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    <div class="progress-pct" id="progress-pct">0%</div>
+  </div>
+  <div class="overview-metrics">
+    <div class="metric"><div class="label">Done</div><div class="value" id="metric-done">0</div></div>
+    <div class="metric"><div class="label">In progress</div><div class="value" id="metric-progress">0</div></div>
+    <div class="metric"><div class="label">Commits this run</div><div class="value" id="metric-commits">0</div></div>
+    <div class="metric"><div class="label">Tests gained</div><div class="value" id="metric-tests"><span class="empty">—</span></div></div>
+  </div>
 </div>
 
 <div class="legend">
@@ -448,31 +502,43 @@
     const agents = state.agents || [];
     renderStrip(agents, now);
 
-    // Overview headline + progress bar
+    // Overview — big "done of total" + headline + 4 metric tiles
     const total = agents.length;
     const completed = agents.filter(a => a.state === 'completed').length;
     const working = agents.filter(a => a.state === 'working').length;
     const silent = agents.filter(a => a.state === 'silent').length;
     const dormant = agents.filter(a => a.state === 'dormant').length;
+    const remaining = total - completed;
     const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+    $('overview-big').innerHTML = total === 0
+      ? '<span class="total">no agents yet</span>'
+      : `<span class="done">${completed}</span> <span class="total">of ${total} done</span>`;
+
     let headline;
     if (total === 0) {
-      headline = 'No agents yet — waiting for the first pulse.';
-    } else if (working > 0 && completed === 0) {
-      headline = `${working} agent${working === 1 ? '' : 's'} working — none completed yet.`;
-    } else if (working > 0) {
-      headline = `${completed} of ${total} agent${total === 1 ? '' : 's'} done, ${working} still working.`;
-    } else if (completed === total) {
-      headline = `All ${total} agent${total === 1 ? '' : 's'} completed.`;
+      headline = 'Waiting for the first pulse.';
+    } else if (remaining === 0) {
+      headline = `All ${total} agent${total === 1 ? '' : 's'} completed — nothing remaining.`;
     } else if (silent > 0) {
-      headline = `${completed} of ${total} done. ${silent} silent (might need a check).`;
+      headline = `${remaining} agent${remaining === 1 ? '' : 's'} remaining (${working} working, ${silent} silent — click silent chips to check).`;
+    } else if (working > 0) {
+      headline = `${remaining} agent${remaining === 1 ? '' : 's'} remaining (${working} working, ${dormant} dormant).`;
     } else {
-      headline = `${completed} of ${total} done, ${dormant} dormant.`;
+      headline = `${remaining} agent${remaining === 1 ? '' : 's'} remaining (all dormant — may have stalled).`;
     }
     $('overview-headline').textContent = headline;
     $('progress-fill').style.width = pct + '%';
-    const commitCount = (state.commits || []).length;
-    $('overview-sub').textContent = `${total} total agents · ${working} working · ${completed} completed · ${silent} silent · ${dormant} dormant · ${commitCount} recent commits in view`;
+    $('progress-pct').textContent = pct + '%';
+
+    $('metric-done').textContent = completed;
+    $('metric-progress').textContent = working + silent;
+    $('metric-commits').textContent = state.commitsAhead || 0;
+    if (state.testsGained !== null && state.testsGained !== undefined) {
+      $('metric-tests').innerHTML = `${state.testsCurrent || '—'} <span class="delta">+${state.testsGained}</span>`;
+    } else {
+      $('metric-tests').innerHTML = '<span class="empty">—</span>';
+    }
     $('stat-agents').textContent = agents.length;
     $('stat-working').textContent = agents.filter(a => a.state === 'working').length;
     $('stat-completed').textContent = agents.filter(a => a.state === 'completed').length;

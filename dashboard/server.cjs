@@ -89,6 +89,36 @@ function buildState() {
   const branch = safeGit(['rev-parse', '--abbrev-ref', 'HEAD']) || 'unknown';
   const headLog = safeGit(['log', '-1', '--pretty=format:%h %ar %s']);
   const recentCommitsRaw = safeGit(['log', '--pretty=format:%h%x09%ar%x09%s', '-15']);
+
+  // How many commits is the current branch ahead of main? (proxy for "work shipped this run")
+  let commitsAhead = 0;
+  const aheadRaw = safeGit(['rev-list', '--count', `${branch}`, '^main']);
+  if (aheadRaw && /^\d+$/.test(aheadRaw)) commitsAhead = parseInt(aheadRaw, 10);
+
+  // Walk events for test-count mentions ("Tests 3117 -> 3132", "tests 3117->3132", "3132 passing")
+  let testsBaseline = null;
+  let testsCurrent = null;
+  const testArrowRe = /\btests?\b[^\n0-9]{0,12}(\d{3,5})\s*[-→>]+\s*(\d{3,5})/gi;
+  const testsPassingRe = /\b(\d{3,5})\s+(?:tests?\s+)?(?:passing|pass)\b/gi;
+  for (const ev of events) {
+    let m;
+    testArrowRe.lastIndex = 0;
+    while ((m = testArrowRe.exec(ev.text)) !== null) {
+      const baseline = parseInt(m[1], 10);
+      const current = parseInt(m[2], 10);
+      if (testsBaseline === null || baseline < testsBaseline) testsBaseline = baseline;
+      if (testsCurrent === null || current > testsCurrent) testsCurrent = current;
+    }
+    testsPassingRe.lastIndex = 0;
+    while ((m = testsPassingRe.exec(ev.text)) !== null) {
+      const n = parseInt(m[1], 10);
+      if (n > 100 && n < 100000) {
+        if (testsCurrent === null || n > testsCurrent) testsCurrent = n;
+      }
+    }
+  }
+  const testsGained = (testsBaseline !== null && testsCurrent !== null) ? Math.max(0, testsCurrent - testsBaseline) : null;
+
   const commits = recentCommitsRaw
     ? recentCommitsRaw.split('\n').map((l) => {
         const [sha, when, msg] = l.split('\t');
@@ -96,7 +126,7 @@ function buildState() {
       })
     : [];
 
-  return { agents, branch, headLog, commits, now };
+  return { agents, branch, headLog, commits, commitsAhead, testsBaseline, testsCurrent, testsGained, now };
 }
 
 const indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
