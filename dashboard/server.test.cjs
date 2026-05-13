@@ -93,4 +93,6 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   assert.match(themedHtml, /Stall-to-recovery loop/);
   assert.match(themedHtml, /Demo preview/);
   assert.match(themedHtml, /Auth cleanup/);
+  assert.match(themedHtml, /state: 'dormant'/);
+  assert.match(themedHtml, /3 agents are working/);
 });

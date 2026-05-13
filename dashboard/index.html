@@ -1261,12 +1261,12 @@
           task: 'Auth cleanup',
           sourceKey: 'codex',
           sourceLabel: 'Codex',
-          state: 'working',
+          state: 'dormant',
           goal: 'Remove stale auth shim and prove login still works before merge.',
-          lastEmitMs: now - 35 * 1000,
+          lastEmitMs: now - 48 * 60 * 1000,
           events: [
-            { ms: now - 35 * 1000, kind: 'normal', text: 'Replacing the stale shim and checking login behavior now.' },
-            demoEvent(now, 2, 'normal', 'Goal: Remove stale auth shim and prove login still works before merge.'),
+            demoEvent(now, 48, 'normal', 'Stopped after replacing the stale shim. 3 agents are working while this one needs rescue.'),
+            demoEvent(now, 49, 'normal', 'Goal: Remove stale auth shim and prove login still works before merge.'),
           ],
         },
         {
@@ -1357,11 +1357,12 @@
     const completed = agents.filter((agent) => agent.state === 'completed').length;
     const working = agents.filter((agent) => agent.state === 'working').length;
     const attention = agents.filter((agent) => triageOf(agent) === 'attention').length;
-    const pct = total ? Math.round((completed / total) * 100) : 0;
+    const healthy = Math.max(0, total - attention);
+    const pct = total ? Math.round((healthy / total) * 100) : 0;
 
     $('branch').textContent = state.branch || 'unknown branch';
     $('head').textContent = state.headLog || 'no commits yet';
-    $('overview-number').textContent = completed + '/' + total;
+    $('overview-number').textContent = attention + '/' + total;
     $('progress-fill').style.width = pct + '%';
     $('metric-attention').textContent = attention;
     $('metric-working').textContent = working;
@@ -1372,7 +1373,7 @@
 
     let copy = 'Waiting for the first agent pulse.';
     if (total && attention) {
-      copy = attention + ' agent' + (attention === 1 ? '' : 's') + ' need rescue. Start there before scanning healthy work.';
+      copy = attention + ' agent' + (attention === 1 ? ' needs' : 's need') + ' rescue. ' + working + ' agents are working.';
     } else if (total && completed === total) {
       copy = 'All agents report complete. This is the merge-review moment.';
     } else if (total) {
