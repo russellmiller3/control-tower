@@ -288,26 +288,46 @@
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 8px 18px;
+    padding: 10px 20px;
     background: rgba(11, 13, 16, 0.92);
     backdrop-filter: blur(6px);
     border-top: 1px solid var(--line);
-    text-align: right;
     font-size: 12px;
     color: var(--dim);
     z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 18px;
+    line-height: 1;
+  }
+  footer.about .byline {
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--dim);
+  }
+  footer.about .byline .title {
+    color: var(--text);
+    font-weight: 500;
   }
   footer.about a {
-    color: var(--cyan);
+    color: var(--dim);
     text-decoration: none;
-    margin-left: 14px;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    transition: color 0.15s;
   }
-  footer.about a i { width: 12px; height: 12px; }
-  footer.about a:hover { color: var(--accent); }
-  footer.about .title { color: var(--text); font-weight: 500; }
+  footer.about a i {
+    width: 13px;
+    height: 13px;
+    stroke-width: 1.75;
+    flex-shrink: 0;
+  }
+  footer.about a:hover { color: var(--text); }
+  footer.about a:hover i { color: var(--cyan); }
   body { padding-bottom: 56px; }
   details.events-more {
     margin-top: 6px;
@@ -414,9 +434,9 @@
 <div class="toast" id="toast"></div>
 
 <footer class="about">
-  <span class="title">Agent Dashboard</span> — built by Russell Miller
-  <a href="mailto:rmiller@zavient.com"><i data-lucide="mail"></i>rmiller@zavient.com</a>
-  <a href="https://www.linkedin.com/in/russellmiller" target="_blank" rel="noopener"><i data-lucide="linkedin"></i>LinkedIn</a>
+  <span class="byline"><span class="title">Agent Dashboard</span> · built by Russell Miller</span>
+  <a href="mailto:rmiller@zavient.com" title="Email"><i data-lucide="mail"></i><span>rmiller@zavient.com</span></a>
+  <a href="https://www.linkedin.com/in/russellmiller" target="_blank" rel="noopener" title="LinkedIn"><i data-lucide="linkedin"></i><span>LinkedIn</span></a>
 </footer>
 
 <div class="connected dead" id="connected"><span class="dot"></span><span id="connected-text">connecting…</span></div>
