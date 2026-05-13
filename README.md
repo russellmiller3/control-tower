@@ -8,10 +8,14 @@ When you spawn multiple Claude Code or Claude Cowork agents in parallel — each
 
 ## What you get
 
-- **Web dashboard at `localhost:9999`** — per-agent cards with state (working / silent / dormant / completed), plain-English goal, last 10 events newest-first
-- **Overall progress banner** with a sentence summary and a progress bar — "3 of 4 agents done, 1 still working"
+- **Web dashboard at `localhost:9999`** — triage-first agent cards with state, goal, activity, source, and heartbeat
+- **Agent detail inspector** — click any agent to see its goal, timeline, diagnosis, and recovery actions
+- **Supervisor inspect button** — writes a plain-English check request back to the right pulse log
+- **Codex + Claude source detection** — watches Windows-friendly `.codex` and `.claude` state paths automatically
+- **Light + nixie dark themes** — use the toggle or `?theme=light` / `?theme=dark` for screenshots
 - **Recent commits sidebar** — live `git log` of the active branch
-- **Live SSE feed** — events appear within ~500ms of an agent writing them
+- **Live SSE feed plus first-paint hydration** — events stream live, and screenshots render populated immediately
+- **Terminal watcher** as a fallback — `pulse-watch.cjs` does the same thing in a terminal window for headless use
 - **Terminal watcher** as a fallback — `pulse-watch.cjs` does the same thing in a terminal window for headless use
 - **4 hooks** that make agent control structural rather than discipline-based:
   - **`worktree-on-agent-spawn`** — refuses to spawn an agent without `isolation: "worktree"` (forces parallel-safe isolation)
@@ -54,6 +58,22 @@ node dashboard/server.cjs
 
 Open `http://localhost:9999` in your browser. Leave the tab open.
 
+Optional environment variables:
+
+```powershell
+$env:AGENT_DASHBOARD_PORT="9999"
+$env:AGENT_DASHBOARD_REPO="C:\Users\rmill\Desktop\programming\clear"
+$env:AGENT_PULSE_LOG="C:\path\to\agent-pulse.log"
+node dashboard/server.cjs
+```
+
+By default the server watches:
+- `%USERPROFILE%\.codex\state\agent-pulse.log`
+- `%USERPROFILE%\.claude\state\agent-pulse.log`
+- `.\agent-pulse.log`
+
+That means the dashboard works on Windows with Codex as soon as Codex, a hook, or a harness writes the same pulse format.
+
 ### Use it with Claude Code
 
 In a fresh Claude Code session, paste the contents of `SETUP-PROMPT.md` as your first message. Claude will:
@@ -63,19 +83,19 @@ In a fresh Claude Code session, paste the contents of `SETUP-PROMPT.md` as your 
 
 Then ask Claude to do anything that involves background agents. The hooks enforce the rest.
 
-### Use it with Claude Cowork or other agent tools
+### Use it with Codex, Claude Cowork, or other agent tools
 
-The hook layer is Claude Code-specific (depends on the local `~/.claude/hooks/` system), but the dashboard works with **any** agent system that can append to `agent-pulse.log` in the expected format. For Cowork:
+The bundled hook layer is Claude Code-specific today, but the dashboard works with **any** agent system that can append to an agent pulse log in the expected format. For Codex or Cowork:
 
-1. Skip the hook installer step.
+1. Skip the Claude hook installer step unless you are using Claude Code.
 2. Run the dashboard server.
-3. Have the agent (or its harness) append events to `~/.claude/state/agent-pulse.log` directly. Format:
+3. Have the agent, hook, or harness append events to one of the watched pulse logs. Format:
    ```
    [<ISO timestamp>] [<task name>] Agent: <plain English status>
    ```
 4. Same dashboard, same view.
 
-The dashboard is platform-agnostic by design. Hooks are the Claude Code accelerator.
+The dashboard is platform-agnostic by design. The hooks are the accelerator, not the dependency.
 
 ## What "plain English" means
 

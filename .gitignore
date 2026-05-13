@@ -4,6 +4,7 @@ node_modules/
 .DS_Store
 .idea/
 .vscode/
+.claude/state/
 
 # Local pulse log (if anyone runs the dashboard from inside this dir)
 agent-pulse.log

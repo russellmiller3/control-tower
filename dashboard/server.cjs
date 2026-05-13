@@ -1,61 +1,159 @@
 #!/usr/bin/env node
 /**
- * Agent dashboard server — port 9999.
+ * Agent dashboard server - port 9999 by default.
  *
  * Routes:
- *   GET  /              → index.html
- *   GET  /api/state     → snapshot {agents, commits, head, branch}
- *   GET  /api/stream    → SSE stream pushing pulse events + state-refresh ticks
+ *   GET  /              -> index.html
+ *   GET  /api/state     -> snapshot {agents, commits, branch}
+ *   GET  /api/stream    -> SSE stream pushing pulse events + state ticks
+ *   POST /api/check-status -> writes a Supervisor inspection request
  *
- * Zero npm deps. Reads from agent-pulse.log + git in the Clear repo.
+ * Zero npm deps. Reads Codex, Claude, and local pulse logs.
  */
 const http = require('node:http');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
-const { execFile, execFileSync } = require('node:child_process');
+const { execFileSync } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname);
-const PULSE_LOG = path.resolve(ROOT, '..', 'agent-pulse.log');
-const CLEAR_REPO = path.resolve(ROOT, '..', '..', '..', 'clear');
-const PORT = 9999;
+const APP_ROOT = path.resolve(ROOT, '..');
+const HOME = os.homedir();
+const PORT = Number(process.env.AGENT_DASHBOARD_PORT || 9999);
 const STALL_MS = 3 * 60 * 1000;
 const DORMANT_MS = 30 * 60 * 1000;
 
-function safeGit(args) {
+function gitRoot(candidate) {
   try {
-    return execFileSync('git', args, { cwd: CLEAR_REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    return execFileSync('git', ['rev-parse', '--show-toplevel'], {
+      cwd: candidate,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
   } catch {
     return '';
   }
 }
 
-function parseEvents() {
-  if (!fs.existsSync(PULSE_LOG)) return [];
-  const raw = fs.readFileSync(PULSE_LOG, 'utf8');
-  const events = [];
-  for (const line of raw.split('\n')) {
-    if (!line.trim()) continue;
-    const m = line.match(/^\[(\S+)\]\s+\[([^\]]+)\]\s+Agent:\s*(.*)$/);
-    if (!m) continue;
-    const ms = Date.parse(m[1]);
-    if (Number.isNaN(ms)) continue;
-    events.push({ ms, iso: m[1], task: m[2], text: m[3] });
+function detectRepo() {
+  const candidates = [
+    process.env.AGENT_DASHBOARD_REPO,
+    process.cwd(),
+    path.resolve(ROOT, '..', '..', '..', 'clear'),
+    APP_ROOT,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const root = gitRoot(candidate);
+    if (root) return root;
   }
+  return APP_ROOT;
+}
+
+const TARGET_REPO = detectRepo();
+
+function pulseSources() {
+  const candidates = [];
+  if (process.env.AGENT_PULSE_LOG) {
+    candidates.push({
+      key: 'custom',
+      label: 'Custom',
+      file: path.resolve(process.env.AGENT_PULSE_LOG),
+    });
+  }
+
+  candidates.push(
+    {
+      key: 'codex',
+      label: 'Codex',
+      file: path.join(HOME, '.codex', 'state', 'agent-pulse.log'),
+    },
+    {
+      key: 'claude',
+      label: 'Claude',
+      file: path.join(HOME, '.claude', 'state', 'agent-pulse.log'),
+    },
+    {
+      key: 'local',
+      label: 'Local',
+      file: path.resolve(APP_ROOT, 'agent-pulse.log'),
+    }
+  );
+
+  const seen = new Set();
+  return candidates.filter((source) => {
+    const resolved = path.resolve(source.file).toLowerCase();
+    if (seen.has(resolved)) return false;
+    seen.add(resolved);
+    return true;
+  });
+}
+
+function safeGit(args) {
+  try {
+    return execFileSync('git', args, {
+      cwd: TARGET_REPO,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function parseEventsFromSource(source) {
+  if (!fs.existsSync(source.file)) return [];
+  const raw = fs.readFileSync(source.file, 'utf8');
+  const events = [];
+
+  for (const rawLine of raw.split('\n')) {
+    const line = rawLine.replace(/^\uFEFF/, '').trimEnd();
+    if (!line.trim()) continue;
+    const match = line.match(/^\[(\S+)\]\s+\[([^\]]+)\]\s+Agent:\s*(.*)$/);
+    if (!match) continue;
+    const ms = Date.parse(match[1]);
+    if (Number.isNaN(ms)) continue;
+    events.push({
+      ms,
+      iso: match[1],
+      task: match[2],
+      text: match[3],
+      sourceKey: source.key,
+      sourceLabel: source.label,
+      sourceFile: source.file,
+    });
+  }
+
   return events;
+}
+
+function parseEvents() {
+  return pulseSources().flatMap(parseEventsFromSource);
 }
 
 const COMPLETION_RE = /\b(all (\d+ )?(remaining )?cycles shipped|all (\d+ )?phases shipped|phase \w+ complete|final test count)/i;
 const MILESTONE_RE = /\b(shipped|GREEN|green\b|landed|committing|cycle \d+(\.\d+)? (green|done|complete))/i;
-const PROBLEM_RE = /\b(PROBLEM|failure|failed|crash|stalled|blocked|stuck|conflict|wiped|clobbered|API Error)/i;
+const PROBLEM_RE = /\b(PROBLEM|failure|failed|crash|stalled|blocked|stuck|conflict|wiped|clobbered|API Error|no transcript growth)/i;
 
 function buildState() {
+  const sources = pulseSources();
   const events = parseEvents();
   const now = Date.now();
   const tasksMap = new Map();
-  for (const ev of events) {
-    if (!tasksMap.has(ev.task)) tasksMap.set(ev.task, { task: ev.task, events: [] });
-    tasksMap.get(ev.task).events.push(ev);
+
+  for (const event of events) {
+    const key = `${event.sourceKey}:${event.task}`;
+    if (!tasksMap.has(key)) {
+      tasksMap.set(key, {
+        task: event.task,
+        sourceKey: event.sourceKey,
+        sourceLabel: event.sourceLabel,
+        events: [],
+      });
+    }
+    tasksMap.get(key).events.push(event);
   }
+
   const agents = [];
   for (const entry of tasksMap.values()) {
     entry.events.sort((a, b) => b.ms - a.ms);
@@ -66,21 +164,28 @@ function buildState() {
     else if (silentMs > DORMANT_MS) state = 'dormant';
     else if (silentMs > STALL_MS) state = 'silent';
     else state = 'working';
-    let goal = '(no goal stated — orchestrator should emit one)';
-    for (const ev of [...entry.events].reverse()) {
-      const m = ev.text.match(/^Goal:\s*(.+?)(?:\s*$|\.\s)/i);
-      if (m) { goal = m[1].trim(); break; }
+
+    let goal = '(no goal stated - orchestrator should emit one)';
+    for (const event of [...entry.events].reverse()) {
+      const match = event.text.match(/^Goal:\s*(.+?)(?:\s*$|\.\s)/i);
+      if (match) {
+        goal = match[1].trim();
+        break;
+      }
     }
+
     agents.push({
       task: entry.task,
+      sourceKey: entry.sourceKey,
+      sourceLabel: entry.sourceLabel,
       state,
       goal,
       lastEmitMs: last.ms,
       lastEmitText: last.text,
-      events: entry.events.slice(0, 10).map((ev) => ({
-        ms: ev.ms,
-        text: ev.text,
-        kind: PROBLEM_RE.test(ev.text) ? 'problem' : MILESTONE_RE.test(ev.text) ? 'milestone' : 'normal',
+      events: entry.events.slice(0, 10).map((event) => ({
+        ms: event.ms,
+        text: event.text,
+        kind: PROBLEM_RE.test(event.text) ? 'problem' : MILESTONE_RE.test(event.text) ? 'milestone' : 'normal',
       })),
     });
   }
@@ -90,43 +195,60 @@ function buildState() {
   const headLog = safeGit(['log', '-1', '--pretty=format:%h %ar %s']);
   const recentCommitsRaw = safeGit(['log', '--pretty=format:%h%x09%ar%x09%s', '-15']);
 
-  // How many commits is the current branch ahead of main? (proxy for "work shipped this run")
   let commitsAhead = 0;
-  const aheadRaw = safeGit(['rev-list', '--count', `${branch}`, '^main']);
+  const aheadRaw = safeGit(['rev-list', '--count', branch, '^main']);
   if (aheadRaw && /^\d+$/.test(aheadRaw)) commitsAhead = parseInt(aheadRaw, 10);
 
-  // Walk events for test-count mentions ("Tests 3117 -> 3132", "tests 3117->3132", "3132 passing")
   let testsBaseline = null;
   let testsCurrent = null;
-  const testArrowRe = /\btests?\b[^\n0-9]{0,12}(\d{3,5})\s*[-→>]+\s*(\d{3,5})/gi;
+  const testArrowRe = /\btests?\b[^\n0-9]{0,12}(\d{3,5})\s*[-=]?>\s*(\d{3,5})/gi;
   const testsPassingRe = /\b(\d{3,5})\s+(?:tests?\s+)?(?:passing|pass)\b/gi;
-  for (const ev of events) {
-    let m;
+  for (const event of events) {
+    let match;
     testArrowRe.lastIndex = 0;
-    while ((m = testArrowRe.exec(ev.text)) !== null) {
-      const baseline = parseInt(m[1], 10);
-      const current = parseInt(m[2], 10);
+    while ((match = testArrowRe.exec(event.text)) !== null) {
+      const baseline = parseInt(match[1], 10);
+      const current = parseInt(match[2], 10);
       if (testsBaseline === null || baseline < testsBaseline) testsBaseline = baseline;
       if (testsCurrent === null || current > testsCurrent) testsCurrent = current;
     }
     testsPassingRe.lastIndex = 0;
-    while ((m = testsPassingRe.exec(ev.text)) !== null) {
-      const n = parseInt(m[1], 10);
-      if (n > 100 && n < 100000) {
-        if (testsCurrent === null || n > testsCurrent) testsCurrent = n;
+    while ((match = testsPassingRe.exec(event.text)) !== null) {
+      const n = parseInt(match[1], 10);
+      if (n > 100 && n < 100000 && (testsCurrent === null || n > testsCurrent)) {
+        testsCurrent = n;
       }
     }
   }
-  const testsGained = (testsBaseline !== null && testsCurrent !== null) ? Math.max(0, testsCurrent - testsBaseline) : null;
+  const testsGained = testsBaseline !== null && testsCurrent !== null
+    ? Math.max(0, testsCurrent - testsBaseline)
+    : null;
 
   const commits = recentCommitsRaw
-    ? recentCommitsRaw.split('\n').map((l) => {
-        const [sha, when, msg] = l.split('\t');
+    ? recentCommitsRaw.split('\n').map((line) => {
+        const [sha, when, msg] = line.split('\t');
         return { sha, when, msg };
       })
     : [];
 
-  return { agents, branch, headLog, commits, commitsAhead, testsBaseline, testsCurrent, testsGained, now };
+  return {
+    agents,
+    branch,
+    headLog,
+    commits,
+    commitsAhead,
+    testsBaseline,
+    testsCurrent,
+    testsGained,
+    now,
+    repo: TARGET_REPO,
+    sources: sources.map((source) => ({
+      key: source.key,
+      label: source.label,
+      file: source.file,
+      exists: fs.existsSync(source.file),
+    })),
+  };
 }
 
 const indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -134,50 +256,82 @@ const indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const sseClients = new Set();
 function broadcastState() {
   if (sseClients.size === 0) return;
-  const state = buildState();
-  const payload = `data: ${JSON.stringify(state)}\n\n`;
-  for (const res of sseClients) {
-    try { res.write(payload); } catch {}
+  const payload = `data: ${JSON.stringify(buildState())}\n\n`;
+  for (const response of sseClients) {
+    try {
+      response.write(payload);
+    } catch {}
   }
 }
 
-// Watch pulse log + poll git for changes; push on either signal
-let lastSize = fs.existsSync(PULSE_LOG) ? fs.statSync(PULSE_LOG).size : 0;
+function writeSourceFor(sourceKey) {
+  const sources = pulseSources();
+  if (sourceKey) {
+    const source = sources.find((candidate) => candidate.key === sourceKey);
+    if (source) return source;
+  }
+  return sources.find((source) => fs.existsSync(source.file)) || sources[0];
+}
+
+function pulseSizeSignature() {
+  return pulseSources()
+    .map((source) => `${source.key}:${fs.existsSync(source.file) ? fs.statSync(source.file).size : 0}`)
+    .join('|');
+}
+
+let lastSize = pulseSizeSignature();
 let lastHead = '';
 setInterval(() => {
   let push = false;
-  if (fs.existsSync(PULSE_LOG)) {
-    const sz = fs.statSync(PULSE_LOG).size;
-    if (sz !== lastSize) { lastSize = sz; push = true; }
+  const size = pulseSizeSignature();
+  if (size !== lastSize) {
+    lastSize = size;
+    push = true;
   }
   const head = safeGit(['rev-parse', 'HEAD']);
-  if (head && head !== lastHead) { lastHead = head; push = true; }
+  if (head && head !== lastHead) {
+    lastHead = head;
+    push = true;
+  }
   if (push) broadcastState();
 }, 1000);
 
-// Heartbeat every 5s so silence counters tick live in the browser
 setInterval(broadcastState, 5000);
 
 const server = http.createServer((req, res) => {
-  if (req.url === '/' || req.url === '/index.html') {
+  const requestUrl = new URL(req.url, 'http://127.0.0.1');
+  if (requestUrl.pathname === '/' || requestUrl.pathname === '/index.html') {
+    const initialState = JSON.stringify(buildState()).replace(/</g, '\\u003c');
+    const hydratedHtml = indexHtml.replace(
+      'window.__INITIAL_STATE__ = null;',
+      `window.__INITIAL_STATE__ = ${initialState};`
+    );
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-    res.end(indexHtml);
+    res.end(hydratedHtml);
     return;
   }
-  if (req.url === '/api/check-status' && req.method === 'POST') {
+
+  if (requestUrl.pathname === '/api/check-status' && req.method === 'POST') {
     let body = '';
-    req.on('data', (c) => (body += c));
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
     req.on('end', () => {
       let parsed = {};
-      try { parsed = JSON.parse(body || '{}'); } catch {}
-      const task = String(parsed.task || '').slice(0, 80) || '(unknown)';
-      const ts = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-      const line = `[${ts}] [${task}] Agent: USER-REQUESTED-CHECK: this agent looks silent on the dashboard. Russell clicked the chip — please investigate (git status, recent commits on its branch, agent transcript if visible) and report what you find.\n`;
       try {
-        fs.mkdirSync(path.dirname(PULSE_LOG), { recursive: true });
-        fs.appendFileSync(PULSE_LOG, line);
+        parsed = JSON.parse(body || '{}');
+      } catch {}
+
+      const task = String(parsed.task || '').slice(0, 80) || '(unknown)';
+      const source = writeSourceFor(String(parsed.sourceKey || ''));
+      const ts = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+      const line = `[${ts}] [${task}] Agent: Supervisor asked to inspect this agent because it looks quiet on the dashboard. Check the branch, recent commits, transcript if available, and report what you find in plain English.\n`;
+
+      try {
+        fs.mkdirSync(path.dirname(source.file), { recursive: true });
+        fs.appendFileSync(source.file, line);
         res.writeHead(200, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ ok: true, task, ts }));
+        res.end(JSON.stringify({ ok: true, task, ts, sourceKey: source.key, sourceLabel: source.label }));
         broadcastState();
       } catch (err) {
         res.writeHead(500, { 'content-type': 'application/json' });
@@ -186,27 +340,32 @@ const server = http.createServer((req, res) => {
     });
     return;
   }
-  if (req.url === '/api/state') {
+
+  if (requestUrl.pathname === '/api/state') {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify(buildState()));
     return;
   }
-  if (req.url === '/api/stream') {
+
+  if (requestUrl.pathname === '/api/stream') {
     res.writeHead(200, {
       'content-type': 'text/event-stream',
       'cache-control': 'no-cache',
-      'connection': 'keep-alive',
+      connection: 'keep-alive',
     });
     res.write(`data: ${JSON.stringify(buildState())}\n\n`);
     sseClients.add(res);
     req.on('close', () => sseClients.delete(res));
     return;
   }
+
   res.writeHead(404);
   res.end('not found');
 });
 
 server.listen(PORT, () => {
   console.log(`Agent dashboard: http://127.0.0.1:${PORT}`);
+  console.log(`Watching repo: ${TARGET_REPO}`);
+  console.log(`Pulse logs: ${pulseSources().map((source) => `${source.label}=${source.file}`).join(' | ')}`);
   console.log('Ctrl+C to stop.');
 });

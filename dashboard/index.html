@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <title>Agent Dashboard</title>
@@ -7,774 +7,1354 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
   :root {
-    --bg: #0b0d10;
-    --panel: #14181d;
-    --panel-2: #1c2128;
-    --text: #d8dee9;
-    --dim: #6e7681;
-    --line: #2a2f37;
-    --green: #56d364;
-    --yellow: #e3b341;
-    --red: #f85149;
-    --cyan: #79c0ff;
-    --magenta: #d2a8ff;
-    --orange: #ffa657;
-    --accent: #ffb24d;
+    --serif: "ABC Oracle", "Tiempos Text", "Ivar Display", Georgia, ui-serif, serif;
+    --mono: "SFMono-Regular", "Cascadia Code", "JetBrains Mono", Consolas, ui-monospace, monospace;
+    --sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --radius: 8px;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root[data-theme="dark"] {
+    --bg: #080807;
+    --panel: #11100e;
+    --panel-2: #191713;
+    --panel-3: #211d17;
+    --text: #f4ead8;
+    --text-strong: #fff7e8;
+    --muted: #9b8d79;
+    --line: #342b20;
+    --line-strong: #5f4426;
+    --amber: #ff9f2f;
+    --amber-soft: rgba(255, 159, 47, 0.13);
+    --amber-glow: rgba(255, 142, 35, 0.45);
+    --green: #58e06f;
+    --green-soft: rgba(88, 224, 111, 0.12);
+    --blue: #78bdff;
+    --blue-soft: rgba(120, 189, 255, 0.12);
+    --red: #ff5b55;
+    --red-soft: rgba(255, 91, 85, 0.12);
+    --yellow: #e7bd46;
+    --yellow-soft: rgba(231, 189, 70, 0.14);
+    --shadow: 0 22px 60px rgba(0, 0, 0, 0.32);
+    --footer: rgba(8, 8, 7, 0.92);
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f7f4ed;
+    --panel: #fffdf8;
+    --panel-2: #f0ece3;
+    --panel-3: #e9eef2;
+    --text: #211d18;
+    --text-strong: #11100e;
+    --muted: #70685d;
+    --line: #d8d0c3;
+    --line-strong: #b69b72;
+    --amber: #ad6c16;
+    --amber-soft: rgba(173, 108, 22, 0.12);
+    --amber-glow: rgba(173, 108, 22, 0.18);
+    --green: #16843a;
+    --green-soft: rgba(22, 132, 58, 0.1);
+    --blue: #236caa;
+    --blue-soft: rgba(35, 108, 170, 0.11);
+    --red: #c83732;
+    --red-soft: rgba(200, 55, 50, 0.1);
+    --yellow: #a97810;
+    --yellow-soft: rgba(169, 120, 16, 0.12);
+    --shadow: 0 22px 48px rgba(70, 55, 31, 0.14);
+    --footer: rgba(255, 253, 248, 0.93);
+  }
+
+  * { box-sizing: border-box; }
+
   body {
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0;
+    min-height: 100vh;
     background: var(--bg);
     color: var(--text);
-    padding: 18px;
-    line-height: 1.5;
+    font-family: var(--sans);
+    line-height: 1.45;
+    padding: 22px 24px 92px;
   }
-  header.top {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    margin-bottom: 18px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--line);
+
+  button, a {
+    font: inherit;
   }
-  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
-  .branch { font-family: ui-monospace, "JetBrains Mono", Consolas, monospace; font-size: 13px; color: var(--dim); }
-  .head { font-family: ui-monospace, monospace; font-size: 12px; color: var(--dim); margin-left: auto; }
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 18px;
-    font-size: 12px;
-    color: var(--dim);
-    margin-bottom: 18px;
-    align-items: center;
-  }
-  .legend > span { display: inline-flex; align-items: center; gap: 5px; }
-  .legend i { width: 14px; height: 14px; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .dot.working { background: var(--green); box-shadow: 0 0 8px var(--green); }
-  .dot.silent { background: var(--yellow); }
-  .dot.dormant { background: var(--dim); }
-  .dot.completed { background: var(--cyan); }
-  .layout { display: grid; grid-template-columns: 1fr 340px; gap: 18px; }
-  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-  .agents { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  @media (max-width: 1100px) { .agents { grid-template-columns: 1fr; } }
-  .agent {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 0;
-    border-left: 4px solid var(--line);
-    overflow: hidden;
-  }
-  .agent.working { border-left-color: var(--green); }
-  .agent.silent { border-left-color: var(--yellow); }
-  .agent.dormant { border-left-color: var(--dim); opacity: 0.85; }
-  .agent.completed { border-left-color: var(--cyan); }
-  details.agent > summary {
+
+  button {
     cursor: pointer;
-    list-style: none;
-    padding: 10px 14px;
+  }
+
+  .shell {
+    max-width: 1840px;
+    margin: 0 auto;
+  }
+
+  .topbar {
     display: grid;
-    grid-template-columns: auto auto 1fr auto auto;
-    grid-gap: 8px;
+    grid-template-columns: minmax(340px, 0.8fr) minmax(0, 1.2fr);
+    gap: 18px;
     align-items: center;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 18px;
+    margin-bottom: 18px;
   }
-  details.agent > summary::-webkit-details-marker { display: none; }
-  details.agent > summary::after {
-    content: "▸";
-    color: var(--dim);
-    font-size: 11px;
-    transition: transform 0.15s;
-    grid-column: 5;
+
+  .brand {
+    min-width: 0;
   }
-  details.agent[open] > summary::after { transform: rotate(90deg); }
-  details.agent > summary:hover { background: var(--panel-2); }
-  details.agent .body {
-    padding: 0 16px 14px 16px;
-    border-top: 1px solid var(--line);
-    margin-top: 0;
-  }
-  .summary-name { font-family: ui-monospace, monospace; font-weight: 600; font-size: 14px; }
-  .summary-state {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 2px 7px;
-    border-radius: 3px;
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(30px, 2.8vw, 44px);
+    line-height: 0.95;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--text-strong);
     white-space: nowrap;
   }
-  .agent.working .summary-state { background: rgba(86, 211, 100, 0.15); color: var(--green); }
-  .agent.silent .summary-state { background: rgba(227, 179, 65, 0.15); color: var(--yellow); }
-  .agent.dormant .summary-state { background: rgba(110, 118, 129, 0.15); color: var(--dim); }
-  .agent.completed .summary-state { background: rgba(121, 192, 255, 0.15); color: var(--cyan); }
-  .summary-goal {
+
+  .tagline {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .top-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .meta-pill,
+  .tool-pill,
+  .action-btn,
+  .theme-btn,
+  .filter-btn {
+    border: 1px solid var(--line);
+    background: var(--panel);
     color: var(--text);
-    font-size: 13px;
-    line-height: 1.4;
+    border-radius: var(--radius);
+    min-height: 38px;
+  }
+
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    max-width: 420px;
+  }
+
+  .meta-pill span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
   }
-  .summary-last { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .ping-btn {
-    background: var(--yellow);
-    color: #1a1305;
-    border: none;
-    border-radius: 4px;
-    padding: 4px 10px;
+
+  .action-btn,
+  .theme-btn,
+  .filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+
+  .action-btn.primary {
+    color: #160c02;
+    background: var(--amber);
+    border-color: var(--amber);
+    box-shadow: 0 0 28px var(--amber-glow);
+    font-weight: 700;
+  }
+
+  .action-btn.secondary {
+    background: var(--panel-2);
+  }
+
+  .theme-btn:hover,
+  .filter-btn:hover,
+  .action-btn.secondary:hover {
+    border-color: var(--line-strong);
+    color: var(--text-strong);
+  }
+
+  .action-btn[disabled] {
+    cursor: default;
+    opacity: 0.55;
+    box-shadow: none;
+  }
+
+  .icon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+  }
+
+  .overview {
+    display: grid;
+    grid-template-columns: minmax(300px, 1.15fr) repeat(4, minmax(140px, 0.35fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .health {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .health-top {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .nixie-number {
+    font-family: var(--serif);
+    font-size: clamp(34px, 4.4vw, 64px);
+    line-height: 0.9;
+    color: var(--amber);
+    text-shadow: 0 0 22px var(--amber-glow);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .health-copy {
+    color: var(--muted);
+    max-width: 620px;
+    font-size: 14px;
+  }
+
+  .progress-track {
+    position: relative;
+    height: 11px;
+    background: var(--panel-3);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--green), var(--blue), var(--amber));
+    transition: width 0.35s ease;
+  }
+
+  .metric,
+  .source-panel,
+  .triage-panel,
+  .agents-panel,
+  .inspector,
+  .commits-panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .metric {
+    padding: 15px;
+    min-width: 0;
+  }
+
+  .metric-label,
+  .section-label,
+  .card-label {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
     font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    letter-spacing: 0.02em;
+    font-family: var(--mono);
+  }
+
+  .metric-value {
+    margin-top: 8px;
+    font-family: var(--serif);
+    color: var(--text-strong);
+    font-size: 30px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric-delta {
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 12px;
+    margin-left: 6px;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .triage-strip,
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-btn.active {
+    border-color: var(--amber);
+    background: var(--amber-soft);
+    color: var(--text-strong);
+  }
+
+  .triage-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    border-radius: var(--radius);
+    min-height: 40px;
+  }
+
+  .triage-btn.active {
+    border-color: var(--line-strong);
+    background: var(--panel-2);
+  }
+
+  .triage-count {
+    font-family: var(--serif);
+    font-size: 19px;
+    color: var(--text-strong);
+    line-height: 1;
+  }
+
+  .status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    display: inline-block;
+    flex: 0 0 auto;
+  }
+
+  .status-working { background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .status-completed { background: var(--blue); box-shadow: 0 0 10px var(--blue); }
+  .status-silent { background: var(--yellow); box-shadow: 0 0 12px var(--yellow); }
+  .status-dormant { background: var(--muted); }
+  .status-problem { background: var(--red); box-shadow: 0 0 12px var(--red); }
+
+  .workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .agents-panel,
+  .inspector,
+  .commits-panel,
+  .source-panel {
+    padding: 16px;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .panel-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    margin: 0;
+    color: var(--text-strong);
+  }
+
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .agent-card {
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--line);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: left;
+    color: var(--text);
+    min-width: 0;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  }
+
+  .agent-card:hover,
+  .agent-card.selected {
+    border-color: var(--line-strong);
+    background: var(--panel-3);
+    transform: translateY(-1px);
+  }
+
+  .agent-card.working { border-left-color: var(--green); }
+  .agent-card.completed { border-left-color: var(--blue); }
+  .agent-card.silent { border-left-color: var(--yellow); }
+  .agent-card.dormant { border-left-color: var(--muted); }
+  .agent-card.problem { border-left-color: var(--red); }
+
+  .agent-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .agent-name {
+    font-family: var(--mono);
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 7px;
+  }
+
+  .badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    grid-column: 4;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 3px 7px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .badge.attention {
+    color: var(--yellow);
+    background: var(--yellow-soft);
+    border-color: rgba(231, 189, 70, 0.34);
+  }
+
+  .badge.done {
+    color: var(--blue);
+    background: var(--blue-soft);
+    border-color: rgba(120, 189, 255, 0.34);
+  }
+
+  .badge.work {
+    color: var(--green);
+    background: var(--green-soft);
+    border-color: rgba(88, 224, 111, 0.28);
+  }
+
+  .time-chip {
+    font-family: var(--mono);
+    color: var(--muted);
+    font-size: 12px;
     white-space: nowrap;
   }
-  .ping-btn:hover { background: var(--accent); }
-  .ping-btn i { width: 12px; height: 12px; }
-  .ping-btn[disabled] {
-    background: var(--panel-2);
-    color: var(--dim);
-    cursor: default;
-  }
-  .ping-btn[disabled]:hover { background: var(--panel-2); }
-  /* Dormant agents get a dimmer button — same action, less urgent */
-  .agent.dormant .ping-btn {
-    background: transparent;
-    color: var(--dim);
-    border: 1px solid var(--line);
-  }
-  .agent.dormant .ping-btn:hover {
-    background: var(--panel-2);
-    color: var(--text);
-    border-color: var(--accent);
-  }
-  .toast {
-    min-width: 320px;
-    max-width: 500px;
-    text-align: left;
-    line-height: 1.5;
-  }
-  .toast .toast-title { color: var(--accent); font-weight: 600; margin-bottom: 4px; }
-  .toast .toast-body { color: var(--text); font-size: 12px; }
-  .agent header.row {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-  }
-  .agent .name {
-    font-size: 16px;
-    font-weight: 600;
-    font-family: ui-monospace, monospace;
-  }
-  .agent .state {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 2px 8px;
-    border-radius: 4px;
-  }
-  .agent.working .state { background: rgba(86, 211, 100, 0.15); color: var(--green); }
-  .agent.silent .state { background: rgba(227, 179, 65, 0.15); color: var(--yellow); }
-  .agent.dormant .state { background: rgba(110, 118, 129, 0.15); color: var(--dim); }
-  .agent.completed .state { background: rgba(121, 192, 255, 0.15); color: var(--cyan); }
-  .agent .last { font-size: 12px; color: var(--dim); margin-left: auto; }
-  .agent .goal {
-    margin-top: 10px;
-    padding: 10px 12px;
-    background: var(--panel-2);
-    border-radius: 6px;
-    font-size: 13px;
-    line-height: 1.5;
-  }
-  .agent .goal-label {
-    font-size: 11px;
-    color: var(--dim);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    display: block;
-    margin-bottom: 4px;
-  }
-  .agent .events {
+
+  .goal-box {
     margin-top: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .event {
-    display: grid;
-    grid-template-columns: 72px 22px 1fr;
-    gap: 8px;
-    font-size: 13px;
-    padding: 4px 0;
-    align-items: center;
-  }
-  .event .when { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
-  .event .marker { text-align: center; display: inline-flex; align-items: center; justify-content: center; }
-  .event .marker i { width: 14px; height: 14px; }
-  .event.milestone .marker { color: var(--green); }
-  .event.problem .marker { color: var(--red); }
-  .event.milestone .text { color: var(--green); }
-  .event.problem .text { color: var(--red); }
-  .event .text { word-wrap: break-word; }
-  .sidebar { display: flex; flex-direction: column; gap: 16px; }
-  .sidebar h2 {
-    font-size: 11px;
-    color: var(--dim);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
-    font-weight: 500;
-  }
-  .panel {
-    background: var(--panel);
+    padding: 10px;
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 14px;
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--panel) 82%, transparent);
   }
-  .commits { display: flex; flex-direction: column; gap: 8px; }
-  .commit { font-size: 12px; line-height: 1.4; }
-  .commit .sha { font-family: ui-monospace, monospace; color: var(--orange); margin-right: 8px; }
-  .commit .when { color: var(--dim); font-size: 11px; margin-right: 6px; }
-  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .stat { background: var(--panel-2); border-radius: 6px; padding: 10px; }
-  .stat .label { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
-  .stat .value { font-size: 22px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
-  .empty { color: var(--dim); font-size: 13px; padding: 14px; text-align: center; }
-  .strip {
-    display: flex;
-    flex-wrap: wrap;
+
+  .goal-text {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+
+  .activity-list {
+    margin-top: 12px;
+    display: grid;
     gap: 8px;
-    margin-bottom: 14px;
   }
-  .chip {
+
+  .activity {
+    display: grid;
+    grid-template-columns: 58px 16px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    font-size: 12px;
+  }
+
+  .activity time {
+    color: var(--muted);
+    font-family: var(--mono);
+    text-align: right;
+    font-size: 11px;
+  }
+
+  .activity i {
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+  }
+
+  .activity .normal { color: var(--muted); }
+  .activity .milestone { color: var(--green); }
+  .activity .problem { color: var(--red); }
+  .activity-text {
+    overflow-wrap: anywhere;
+  }
+
+  .card-foot {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+
+  .spark {
+    display: flex;
+    gap: 3px;
+    align-items: end;
+    height: 24px;
+  }
+
+  .spark span {
+    width: 6px;
+    min-height: 5px;
+    border-radius: 2px 2px 0 0;
+    background: var(--line-strong);
+  }
+
+  .spark span.good { background: var(--green); }
+  .spark span.bad { background: var(--red); }
+  .spark span.neutral { background: var(--blue); }
+
+  .mini-action {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 7px 9px;
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 6px 12px;
     font-size: 12px;
-    cursor: pointer;
-    transition: background 0.12s, border-color 0.12s;
-    user-select: none;
   }
-  .chip:hover { background: var(--panel-2); border-color: var(--accent); }
-  .chip .name { font-family: ui-monospace, monospace; font-weight: 500; color: var(--text); }
-  .chip .age { color: var(--dim); font-size: 11px; }
-  .chip.working { border-color: rgba(86, 211, 100, 0.35); }
-  .chip.silent { border-color: rgba(227, 179, 65, 0.5); background: rgba(227, 179, 65, 0.07); }
-  .chip.silent:hover { background: rgba(227, 179, 65, 0.15); }
-  .chip.dormant { border-color: var(--line); opacity: 0.75; }
-  .chip.completed { border-color: rgba(121, 192, 255, 0.35); }
-  .chip .dot { width: 8px; height: 8px; }
-  .chip-action {
-    margin-left: 4px;
-    color: var(--yellow);
-    font-size: 11px;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
+
+  .mini-action:hover {
+    border-color: var(--amber);
   }
-  .chip-action i { width: 11px; height: 11px; }
-  .toast {
-    position: fixed;
-    bottom: 60px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--panel);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
-    z-index: 100;
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
-  }
-  .toast.show { opacity: 1; }
-  .agent { scroll-margin-top: 18px; }
-  .overview {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin-bottom: 18px;
-  }
-  .overview-top {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-  }
-  .overview-big {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .overview-big .done { color: var(--brightGreen, var(--green)); }
-  .overview-big .total { color: var(--dim); font-weight: 400; }
-  .overview-headline {
-    font-size: 14px;
-    color: var(--dim);
-    flex: 1;
-  }
-  .progress-bar {
-    background: var(--panel-2);
-    height: 10px;
-    border-radius: 5px;
-    overflow: hidden;
-    margin-bottom: 12px;
-    position: relative;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--green), var(--cyan));
-    transition: width 0.4s ease;
-  }
-  .progress-pct {
-    position: absolute;
-    right: 8px;
-    top: -3px;
-    font-size: 11px;
-    color: var(--dim);
-    line-height: 16px;
-    font-variant-numeric: tabular-nums;
-  }
-  .overview-metrics {
+
+  .right-rail {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 14px;
+    position: sticky;
+    top: 16px;
   }
-  @media (max-width: 700px) { .overview-metrics { grid-template-columns: 1fr 1fr; } }
-  .metric {
+
+  .inspector-empty {
+    color: var(--muted);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+
+  .detail-title {
+    font-family: var(--mono);
+    color: var(--text-strong);
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+
+  .diagnosis {
+    margin-top: 12px;
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--line-strong);
+    border-radius: var(--radius);
+    padding: 12px;
     background: var(--panel-2);
-    border-radius: 6px;
-    padding: 10px 12px;
   }
-  .metric .label {
-    font-size: 10px;
-    color: var(--dim);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+
+  .diagnosis.attention {
+    border-left-color: var(--yellow);
+    background: var(--yellow-soft);
+  }
+
+  .diagnosis.clean {
+    border-left-color: var(--green);
+    background: var(--green-soft);
+  }
+
+  .diagnosis.done {
+    border-left-color: var(--blue);
+    background: var(--blue-soft);
+  }
+
+  .diagnosis strong {
+    display: block;
+    color: var(--text-strong);
     margin-bottom: 4px;
   }
-  .metric .value {
-    font-size: 18px;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
+
+  .detail-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 12px;
   }
-  .metric .value .delta { font-size: 12px; color: var(--green); margin-left: 4px; font-weight: 400; }
-  .metric .value .empty { color: var(--dim); font-size: 13px; font-weight: 400; }
-  footer.about {
+
+  .secondary-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .timeline {
+    margin-top: 14px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 66px 20px minmax(0, 1fr);
+    gap: 9px;
+    align-items: start;
+    font-size: 13px;
+  }
+
+  .timeline-row time {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: right;
+  }
+
+  .timeline-row .rail {
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border-radius: 999px;
+    background: var(--line-strong);
+  }
+
+  .timeline-row.problem .rail { background: var(--red); }
+  .timeline-row.milestone .rail { background: var(--green); }
+
+  .source-grid,
+  .commits-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .source-row,
+  .commit-row {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 9px 10px;
+    background: var(--panel-2);
+    min-width: 0;
+  }
+
+  .source-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .source-name {
+    color: var(--text-strong);
+    font-weight: 700;
+  }
+
+  .source-file {
+    grid-column: 1 / -1;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    overflow-wrap: anywhere;
+  }
+
+  .commit-row {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .commit-sha {
+    color: var(--amber);
+    font-family: var(--mono);
+    margin-right: 8px;
+  }
+
+  .commit-when {
+    color: var(--muted);
+    margin-right: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .empty {
+    color: var(--muted);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    text-align: center;
+  }
+
+  .toast {
     position: fixed;
-    bottom: 0;
+    left: 50%;
+    bottom: 92px;
+    transform: translateX(-50%);
+    width: min(560px, calc(100vw - 32px));
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--amber);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+    transition: opacity 0.18s;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  .toast-title {
+    color: var(--amber);
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  footer.portfolio {
+    position: fixed;
     left: 0;
     right: 0;
-    padding: 10px 20px;
-    background: rgba(11, 13, 16, 0.92);
-    backdrop-filter: blur(6px);
-    border-top: 1px solid var(--line);
-    font-size: 12px;
-    color: var(--dim);
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+    bottom: 0;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto;
     gap: 18px;
+    align-items: center;
+    min-height: 68px;
+    padding: 12px 24px;
+    background: var(--footer);
+    border-top: 1px solid var(--line);
+    backdrop-filter: blur(12px);
+  }
+
+  .signature strong {
+    display: block;
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--text-strong);
     line-height: 1;
   }
-  footer.about .byline {
-    margin-right: auto;
+
+  .signature span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .contact-links {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--dim);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
   }
-  footer.about .byline .title {
+
+  .contact-links a {
     color: var(--text);
-    font-weight: 500;
-  }
-  footer.about a {
-    color: var(--dim);
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 9px 11px;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: color 0.15s;
+    gap: 8px;
+    min-height: 38px;
   }
-  footer.about a i {
-    width: 13px;
-    height: 13px;
-    stroke-width: 1.75;
-    flex-shrink: 0;
+
+  .contact-links a:hover {
+    border-color: var(--amber);
+    color: var(--text-strong);
   }
-  footer.about a:hover { color: var(--text); }
-  footer.about a:hover i { color: var(--cyan); }
-  body { padding-bottom: 56px; }
-  details.events-more {
-    margin-top: 6px;
-    cursor: pointer;
+
+  @media (max-width: 1180px) {
+    .overview {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .health {
+      grid-column: 1 / -1;
+    }
+    .workspace {
+      grid-template-columns: 1fr;
+    }
+    .right-rail {
+      position: static;
+    }
   }
-  details.events-more > summary {
-    list-style: none;
-    color: var(--dim);
-    font-size: 11px;
-    padding: 4px 0;
-    user-select: none;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+
+  @media (max-width: 780px) {
+    body {
+      padding: 16px 14px 132px;
+    }
+    .topbar,
+    .controls,
+    footer.portfolio {
+      grid-template-columns: 1fr;
+    }
+    .top-actions,
+    .contact-links {
+      justify-content: flex-start;
+    }
+    .overview,
+    .agents-grid,
+    .secondary-actions {
+      grid-template-columns: 1fr;
+    }
+    footer.portfolio {
+      min-height: 112px;
+    }
   }
-  details.events-more > summary::-webkit-details-marker { display: none; }
-  details.events-more > summary::before {
-    content: "▸ ";
-    display: inline-block;
-    transition: transform 0.15s ease;
-  }
-  details.events-more[open] > summary::before {
-    transform: rotate(90deg);
-  }
-  details.events-more > summary:hover { color: var(--cyan); }
-  details.events-more .more-events {
-    margin-top: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .connected {
-    position: fixed;
-    bottom: 12px;
-    right: 12px;
-    font-size: 11px;
-    color: var(--dim);
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 4px 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .connected .dot { width: 6px; height: 6px; }
-  .connected.live .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .connected.dead .dot { background: var(--red); }
 </style>
 </head>
 <body>
-<header class="top">
-  <h1>Agent Dashboard</h1>
-  <span class="branch" id="branch">…</span>
-  <span class="head" id="head">…</span>
-</header>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <h1>Agent Dashboard</h1>
+      <div class="tagline">A control room for Codex and Claude agents: see the run, find the backup, send help.</div>
+    </div>
+    <div class="top-actions">
+      <div class="meta-pill" title="Current branch"><i class="icon" data-lucide="git-branch"></i><span id="branch">loading</span></div>
+      <div class="meta-pill" title="Latest commit"><i class="icon" data-lucide="git-commit-horizontal"></i><span id="head">loading</span></div>
+      <button class="theme-btn" id="theme-toggle" type="button"><i class="icon" data-lucide="sun-moon"></i><span>Light</span></button>
+      <button class="action-btn primary" id="global-supervisor" type="button"><i class="icon" data-lucide="scan-search"></i><span>Ask Supervisor</span></button>
+    </div>
+  </header>
 
-<div class="strip" id="strip"></div>
-
-<div class="overview" id="overview">
-  <div class="overview-top">
-    <div class="overview-big" id="overview-big">— of —</div>
-    <div class="overview-headline" id="overview-headline">Loading…</div>
-  </div>
-  <div class="progress-bar">
-    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-    <div class="progress-pct" id="progress-pct">0%</div>
-  </div>
-  <div class="overview-metrics">
-    <div class="metric"><div class="label">Done</div><div class="value" id="metric-done">0</div></div>
-    <div class="metric"><div class="label">In progress</div><div class="value" id="metric-progress">0</div></div>
-    <div class="metric"><div class="label">Commits this run</div><div class="value" id="metric-commits">0</div></div>
-    <div class="metric"><div class="label">Tests gained</div><div class="value" id="metric-tests"><span class="empty">—</span></div></div>
-  </div>
-</div>
-
-<div class="legend">
-  <span><span class="dot working"></span> working</span>
-  <span><span class="dot silent"></span> gone dark (3min+)</span>
-  <span><span class="dot dormant"></span> dormant (30min+)</span>
-  <span><span class="dot completed"></span> completed</span>
-  <span style="color: var(--green); display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="star"></i> shipped / green</span>
-  <span style="color: var(--red); display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="alert-triangle"></i> problem / failure</span>
-</div>
-
-<div class="layout">
-  <div class="agents" id="agents"><div class="empty">waiting for first pulse…</div></div>
-  <div class="sidebar">
-    <div class="panel">
-      <h2>Stats</h2>
-      <div class="stats">
-        <div class="stat"><div class="label">Agents</div><div class="value" id="stat-agents">0</div></div>
-        <div class="stat"><div class="label">Working</div><div class="value" id="stat-working">0</div></div>
-        <div class="stat"><div class="label">Completed</div><div class="value" id="stat-completed">0</div></div>
-        <div class="stat"><div class="label">Gone dark</div><div class="value" id="stat-silent">0</div></div>
+  <section class="overview" aria-label="Run health">
+    <div class="health">
+      <div class="health-top">
+        <div class="nixie-number" id="overview-number">0/0</div>
+        <div class="health-copy" id="overview-copy">Waiting for the first agent pulse.</div>
+      </div>
+      <div class="progress-track" aria-label="Completion progress">
+        <div class="progress-fill" id="progress-fill"></div>
       </div>
     </div>
-    <div class="panel">
-      <h2>Recent commits</h2>
-      <div class="commits" id="commits"><div class="empty">no commits yet</div></div>
-    </div>
-  </div>
+    <div class="metric"><div class="metric-label">Need attention</div><div class="metric-value" id="metric-attention">0</div></div>
+    <div class="metric"><div class="metric-label">Working</div><div class="metric-value" id="metric-working">0</div></div>
+    <div class="metric"><div class="metric-label">Commits</div><div class="metric-value" id="metric-commits">0</div></div>
+    <div class="metric"><div class="metric-label">Tests</div><div class="metric-value" id="metric-tests">--</div></div>
+  </section>
+
+  <section class="controls" aria-label="Dashboard filters">
+    <div class="triage-strip" id="triage-strip"></div>
+    <div class="filters" id="filters"></div>
+  </section>
+
+  <main class="workspace">
+    <section class="agents-panel" aria-label="Agent runs">
+      <div class="panel-head">
+        <h2 class="panel-title">Agent Runs</h2>
+        <div class="section-label" id="agent-count">0 agents</div>
+      </div>
+      <div class="agents-grid" id="agents"><div class="empty">Waiting for first pulse...</div></div>
+    </section>
+
+    <aside class="right-rail">
+      <section class="inspector" aria-label="Agent detail">
+        <div class="panel-head">
+          <h2 class="panel-title">Agent Detail</h2>
+          <div class="section-label" id="detail-source">No selection</div>
+        </div>
+        <div id="inspector-body" class="inspector-empty">Select an agent to inspect its goal, timeline, and recovery actions.</div>
+      </section>
+
+      <section class="source-panel" aria-label="Signal sources">
+        <div class="panel-head">
+          <h2 class="panel-title">Signal Sources</h2>
+          <div class="section-label" id="connection-state">Connecting</div>
+        </div>
+        <div class="source-grid" id="sources"></div>
+      </section>
+
+      <section class="commits-panel" aria-label="Recent commits">
+        <div class="panel-head">
+          <h2 class="panel-title">Recent Commits</h2>
+          <div class="section-label" id="repo-label">repo</div>
+        </div>
+        <div class="commits-list" id="commits"><div class="empty">No commits yet.</div></div>
+      </section>
+    </aside>
+  </main>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<footer class="about">
-  <span class="byline"><span class="title">Agent Dashboard</span> · built by Russell Miller</span>
-  <a href="mailto:rmiller@zavient.com" title="Email"><i data-lucide="mail"></i><span>rmiller@zavient.com</span></a>
-  <a href="https://www.linkedin.com/in/russellmiller" target="_blank" rel="noopener" title="LinkedIn"><i data-lucide="linkedin"></i><span>LinkedIn</span></a>
+<footer class="portfolio">
+  <div class="signature">
+    <strong>Russell Miller</strong>
+    <span>AI systems builder - multi-agent tooling</span>
+  </div>
+  <nav class="contact-links" aria-label="Portfolio contact">
+    <a href="mailto:rmiller@zavient.com"><i class="icon" data-lucide="mail"></i><span>rmiller@zavient.com</span></a>
+    <a href="https://www.linkedin.com/in/russellmiller" target="_blank" rel="noopener"><i class="icon" data-lucide="linkedin"></i><span>LinkedIn</span></a>
+  </nav>
 </footer>
 
-<div class="connected dead" id="connected"><span class="dot"></span><span id="connected-text">connecting…</span></div>
-
 <script>
+  window.__INITIAL_STATE__ = null;
+
   const $ = (id) => document.getElementById(id);
 
+  let latestState = null;
+  let selectedKey = null;
+  let triageFilter = 'all';
+  let sourceFilter = 'all';
+
+  const requestedTheme = new URLSearchParams(window.location.search).get('theme');
+  const storedTheme = localStorage.getItem('agent-dashboard-theme');
+  const initialTheme = requestedTheme || storedTheme;
+  if (initialTheme === 'light' || initialTheme === 'dark') {
+    document.documentElement.dataset.theme = initialTheme;
+  }
+
   function relTime(ms, now) {
-    const sec = Math.floor((now - ms) / 1000);
+    const sec = Math.max(0, Math.floor((now - ms) / 1000));
     if (sec < 5) return 'just now';
     if (sec < 60) return sec + 's ago';
     if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
     return Math.floor(sec / 3600) + 'h ago';
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[char]));
   }
 
-  function showToast(titleHtml, bodyHtml, durationMs) {
-    const t = $('toast');
-    t.innerHTML = '<div class="toast-title">' + titleHtml + '</div><div class="toast-body">' + bodyHtml + '</div>';
-    t.classList.add('show');
-    clearTimeout(showToast._timer);
-    showToast._timer = setTimeout(() => t.classList.remove('show'), durationMs || 6000);
+  function agentKey(agent) {
+    return agent.sourceKey + ':' + agent.task;
   }
 
-  function checkStatus(task, btn) {
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<i data-lucide="check"></i>asked';
-      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+  function hasProblem(agent) {
+    return (agent.events || []).some((event) => event.kind === 'problem');
+  }
+
+  function triageOf(agent) {
+    if (agent.state === 'completed') return 'ready';
+    if (agent.state === 'silent' || agent.state === 'dormant' || hasProblem(agent)) return 'attention';
+    return 'active';
+  }
+
+  function stateLabel(agent) {
+    if (agent.state === 'silent') return 'Backed up';
+    if (agent.state === 'dormant') return 'Dormant';
+    if (agent.state === 'completed') return 'Completed';
+    return 'Working';
+  }
+
+  function stateBadgeClass(agent) {
+    if (triageOf(agent) === 'attention') return 'attention';
+    if (agent.state === 'completed') return 'done';
+    return 'work';
+  }
+
+  function diagnosis(agent, now) {
+    const quietFor = relTime(agent.lastEmitMs, now);
+    if (agent.state === 'silent') {
+      return {
+        tone: 'attention',
+        title: 'Backed up: no fresh output for ' + quietFor,
+        body: 'This is the one to send to the Supervisor first.',
+      };
     }
+    if (agent.state === 'dormant') {
+      return {
+        tone: 'attention',
+        title: 'Dormant: quiet for ' + quietFor,
+        body: 'Likely stalled or finished without a clean final pulse.',
+      };
+    }
+    if (hasProblem(agent)) {
+      return {
+        tone: 'attention',
+        title: 'Problem signal found',
+        body: 'The timeline includes blocked, failed, or stuck language.',
+      };
+    }
+    if (agent.state === 'completed') {
+      return {
+        tone: 'done',
+        title: 'Ready to review',
+        body: 'This agent reports completion. Check commits before merging.',
+      };
+    }
+    return {
+      tone: 'clean',
+      title: 'Healthy heartbeat',
+      body: 'The agent is still talking. No intervention needed yet.',
+    };
+  }
+
+  function showToast(title, body, durationMs) {
+    const toast = $('toast');
+    toast.innerHTML = '<div class="toast-title">' + escapeHtml(title) + '</div><div>' + escapeHtml(body) + '</div>';
+    toast.classList.add('show');
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove('show'), durationMs || 5200);
+  }
+
+  function renderIcons() {
+    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+  }
+
+  function askSupervisor(agent, button) {
+    if (!agent) {
+      showToast('Nothing needs help', 'No backed-up agent is selected right now.');
+      return;
+    }
+    if (button) {
+      button.disabled = true;
+      button.innerHTML = '<i class="icon" data-lucide="check"></i><span>Supervisor asked</span>';
+      renderIcons();
+    }
+
     fetch('/api/check-status', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ task }),
-    }).then((r) => r.json()).then((j) => {
-      if (j.ok) {
-        showToast(
-          'Asked AI to check on [' + escapeHtml(task) + ']',
-          'A note was written to the agent pulse log. The AI driving this agent (Claude, Codex, ' +
-          'or whatever) will see it in their next reply and respond in chat with what they find — ' +
-          'git status, recent commits on its branch, whether it crashed silently, etc. ' +
-          'No action needed from you.',
-          7000
-        );
-      } else {
-        showToast('Request failed', escapeHtml(j.error || 'unknown error') + '. Try again or check the dashboard server logs.', 5000);
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<i data-lucide="message-circle-question"></i>ask AI';
-          if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
-        }
-      }
-    }).catch((err) => {
-      showToast('Network error', escapeHtml(err.message), 5000);
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="message-circle-question"></i>ask AI';
-        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      body: JSON.stringify({ task: agent.task, sourceKey: agent.sourceKey }),
+    }).then((response) => response.json()).then((result) => {
+      if (!result.ok) throw new Error(result.error || 'Request failed');
+      showToast('Supervisor asked', 'A plain-English inspection request was written to the ' + result.sourceLabel + ' pulse log.');
+    }).catch((error) => {
+      showToast('Supervisor request failed', error.message);
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = '<i class="icon" data-lucide="scan-search"></i><span>Have Supervisor Inspect</span>';
+        renderIcons();
       }
     });
   }
 
-  function scrollToAgent(task) {
-    const sections = document.querySelectorAll('.agent');
-    for (const sec of sections) {
-      if (sec.dataset.task === task) {
-        sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        sec.style.outline = '2px solid var(--accent)';
-        setTimeout(() => sec.style.outline = '', 1200);
-        return;
-      }
-    }
+  function visibleAgents(agents) {
+    return agents.filter((agent) => {
+      const triageMatch = triageFilter === 'all' || triageOf(agent) === triageFilter;
+      const sourceMatch = sourceFilter === 'all' || agent.sourceKey === sourceFilter;
+      return triageMatch && sourceMatch;
+    });
   }
 
-  function renderStrip(agents, now) {
-    const stripEl = $('strip');
-    if (agents.length === 0) {
-      stripEl.innerHTML = '<span style="color: var(--dim); font-size: 12px;">no agents yet</span>';
+  function renderOverview(state) {
+    const agents = state.agents || [];
+    const total = agents.length;
+    const completed = agents.filter((agent) => agent.state === 'completed').length;
+    const working = agents.filter((agent) => agent.state === 'working').length;
+    const attention = agents.filter((agent) => triageOf(agent) === 'attention').length;
+    const pct = total ? Math.round((completed / total) * 100) : 0;
+
+    $('branch').textContent = state.branch || 'unknown branch';
+    $('head').textContent = state.headLog || 'no commits yet';
+    $('overview-number').textContent = completed + '/' + total;
+    $('progress-fill').style.width = pct + '%';
+    $('metric-attention').textContent = attention;
+    $('metric-working').textContent = working;
+    $('metric-commits').textContent = state.commitsAhead || 0;
+    $('metric-tests').innerHTML = state.testsGained === null || state.testsGained === undefined
+      ? '--'
+      : escapeHtml(state.testsCurrent) + '<span class="metric-delta">+' + escapeHtml(state.testsGained) + '</span>';
+
+    let copy = 'Waiting for the first agent pulse.';
+    if (total && attention) {
+      copy = attention + ' agent' + (attention === 1 ? '' : 's') + ' need attention. Start there before scanning healthy work.';
+    } else if (total && completed === total) {
+      copy = 'All agents report complete. This is the merge-review moment.';
+    } else if (total) {
+      copy = working + ' agent' + (working === 1 ? '' : 's') + ' still working. No intervention needed yet.';
+    }
+    $('overview-copy').textContent = copy;
+  }
+
+  function renderTriage(state) {
+    const agents = state.agents || [];
+    const counts = {
+      all: agents.length,
+      attention: agents.filter((agent) => triageOf(agent) === 'attention').length,
+      active: agents.filter((agent) => triageOf(agent) === 'active').length,
+      ready: agents.filter((agent) => triageOf(agent) === 'ready').length,
+    };
+    const items = [
+      ['all', 'All agents'],
+      ['attention', 'Needs attention'],
+      ['active', 'Safe to ignore'],
+      ['ready', 'Ready to merge'],
+    ];
+
+    $('triage-strip').innerHTML = items.map(([key, label]) => (
+      '<button type="button" class="triage-btn ' + (triageFilter === key ? 'active' : '') + '" data-triage="' + key + '">'
+      + '<span class="triage-count">' + counts[key] + '</span><span>' + label + '</span></button>'
+    )).join('');
+
+    $('triage-strip').querySelectorAll('[data-triage]').forEach((button) => {
+      button.addEventListener('click', () => {
+        triageFilter = button.dataset.triage;
+        render(latestState);
+      });
+    });
+  }
+
+  function renderFilters(state) {
+    const sources = state.sources || [];
+    const activeSources = sources.filter((source) => source.exists);
+    const items = [['all', 'All']];
+    for (const source of activeSources) items.push([source.key, source.label]);
+    if (!activeSources.length) {
+      for (const source of sources) items.push([source.key, source.label]);
+    }
+
+    $('filters').innerHTML = items.map(([key, label]) => (
+      '<button type="button" class="filter-btn ' + (sourceFilter === key ? 'active' : '') + '" data-source="' + key + '">' + escapeHtml(label) + '</button>'
+    )).join('');
+
+    $('filters').querySelectorAll('[data-source]').forEach((button) => {
+      button.addEventListener('click', () => {
+        sourceFilter = button.dataset.source;
+        render(latestState);
+      });
+    });
+  }
+
+  function renderActivity(event, now) {
+    const icon = event.kind === 'problem'
+      ? 'alert-triangle'
+      : event.kind === 'milestone'
+        ? 'check-circle-2'
+        : 'circle';
+    return '<div class="activity">'
+      + '<time>' + relTime(event.ms, now) + '</time>'
+      + '<span class="' + event.kind + '"><i data-lucide="' + icon + '"></i></span>'
+      + '<div class="activity-text">' + escapeHtml(event.text) + '</div>'
+      + '</div>';
+  }
+
+  function renderSpark(agent) {
+    const events = (agent.events || []).slice(0, 8).reverse();
+    if (!events.length) return '';
+    return '<div class="spark" aria-hidden="true">'
+      + events.map((event, index) => {
+        const height = 6 + (index % 5) * 4;
+        const cls = event.kind === 'problem' ? 'bad' : event.kind === 'milestone' ? 'good' : 'neutral';
+        return '<span class="' + cls + '" style="height:' + height + 'px"></span>';
+      }).join('')
+      + '</div>';
+  }
+
+  function renderAgents(state) {
+    const agents = visibleAgents(state.agents || []);
+    $('agent-count').textContent = agents.length + ' visible';
+    if (!agents.length) {
+      $('agents').innerHTML = '<div class="empty">No agents match this view.</div>';
       return;
     }
-    stripEl.innerHTML = '';
-    for (const agent of agents) {
-      const chip = document.createElement('span');
-      chip.className = 'chip ' + agent.state;
-      const needsCheck = agent.state === 'silent' || agent.state === 'dormant';
-      const actionHtml = needsCheck
-        ? '<span class="chip-action"><i data-lucide="message-circle-question"></i>ask AI</span>'
-        : '';
-      chip.innerHTML = ''
-        + '<span class="dot ' + agent.state + '"></span>'
-        + '<span class="name">' + escapeHtml(agent.task) + '</span>'
-        + '<span class="age">' + relTime(agent.lastEmitMs, now) + '</span>'
-        + actionHtml;
-      chip.addEventListener('click', () => {
-        if (needsCheck) checkStatus(agent.task);
-        else scrollToAgent(agent.task);
+
+    $('agents').innerHTML = agents.map((agent) => {
+      const key = agentKey(agent);
+      const selected = key === selectedKey ? ' selected' : '';
+      const triage = triageOf(agent);
+      const cardClass = triage === 'attention' ? 'problem' : agent.state;
+      const recent = (agent.events || []).slice(0, 3).map((event) => renderActivity(event, state.now)).join('');
+      return '<button type="button" class="agent-card ' + cardClass + selected + '" data-agent="' + escapeHtml(key) + '">'
+        + '<div class="agent-head">'
+        + '<div><div class="agent-name">' + escapeHtml(agent.task) + '</div>'
+        + '<div class="badge-row">'
+        + '<span class="badge ' + stateBadgeClass(agent) + '"><span class="status-dot status-' + escapeHtml(agent.state) + '"></span>' + stateLabel(agent) + '</span>'
+        + '<span class="badge">' + escapeHtml(agent.sourceLabel || 'Agent') + '</span>'
+        + '</div></div>'
+        + '<div class="time-chip">' + relTime(agent.lastEmitMs, state.now) + '</div>'
+        + '</div>'
+        + '<div class="goal-box"><div class="card-label">Goal</div><div class="goal-text">' + escapeHtml(agent.goal) + '</div></div>'
+        + '<div class="activity-list">' + recent + '</div>'
+        + '<div class="card-foot">' + renderSpark(agent)
+        + (triage === 'attention'
+          ? '<span class="mini-action"><i class="icon" data-lucide="scan-search"></i>Inspect</span>'
+          : '<span class="section-label">' + escapeHtml(triage === 'ready' ? 'review' : 'monitor') + '</span>')
+        + '</div>'
+        + '</button>';
+    }).join('');
+
+    $('agents').querySelectorAll('[data-agent]').forEach((card) => {
+      card.addEventListener('click', () => {
+        selectedKey = card.dataset.agent;
+        render(latestState);
       });
-      stripEl.appendChild(chip);
+    });
+  }
+
+  function selectedAgent(state) {
+    const agents = state.agents || [];
+    if (selectedKey) {
+      const selected = agents.find((agent) => agentKey(agent) === selectedKey);
+      if (selected) return selected;
     }
+    return agents.find((agent) => triageOf(agent) === 'attention') || agents[0] || null;
+  }
+
+  function renderInspector(state) {
+    const agent = selectedAgent(state);
+    if (!agent) {
+      selectedKey = null;
+      $('detail-source').textContent = 'No selection';
+      $('inspector-body').className = 'inspector-empty';
+      $('inspector-body').innerHTML = 'Select an agent to inspect its goal, timeline, and recovery actions.';
+      $('global-supervisor').disabled = true;
+      return;
+    }
+
+    selectedKey = agentKey(agent);
+    const diag = diagnosis(agent, state.now);
+    $('detail-source').textContent = agent.sourceLabel || 'Agent';
+    $('global-supervisor').disabled = triageOf(agent) !== 'attention';
+    $('inspector-body').className = '';
+    $('inspector-body').innerHTML = ''
+      + '<div class="detail-title">' + escapeHtml(agent.task) + '</div>'
+      + '<div class="badge-row">'
+      + '<span class="badge ' + stateBadgeClass(agent) + '">' + stateLabel(agent) + '</span>'
+      + '<span class="badge">' + escapeHtml(agent.sourceLabel || 'Agent') + '</span>'
+      + '<span class="badge">' + relTime(agent.lastEmitMs, state.now) + '</span>'
+      + '</div>'
+      + '<div class="goal-box"><div class="card-label">Current goal</div><div class="goal-text">' + escapeHtml(agent.goal) + '</div></div>'
+      + '<div class="diagnosis ' + diag.tone + '"><strong>' + escapeHtml(diag.title) + '</strong><span>' + escapeHtml(diag.body) + '</span></div>'
+      + '<div class="detail-actions">'
+      + '<button type="button" class="action-btn primary" id="detail-supervisor"><i class="icon" data-lucide="scan-search"></i><span>Have Supervisor Inspect</span></button>'
+      + '<div class="secondary-actions">'
+      + '<button type="button" class="action-btn secondary" data-soft-action="Transcript paths are not in the pulse log yet. Add transcript metadata to enable this."><i class="icon" data-lucide="file-search"></i><span>Transcript</span></button>'
+      + '<button type="button" class="action-btn secondary" data-soft-action="Resume needs a runner integration. This dashboard already tells you who needs it."><i class="icon" data-lucide="play"></i><span>Resume</span></button>'
+      + '<button type="button" class="action-btn secondary" data-soft-action="Stopping workers needs explicit runner support. No fake kill button here."><i class="icon" data-lucide="octagon-x"></i><span>Stop</span></button>'
+      + '</div></div>'
+      + '<div class="timeline">' + (agent.events || []).slice(0, 6).map((event) => {
+        return '<div class="timeline-row ' + event.kind + '"><time>' + relTime(event.ms, state.now) + '</time><span class="rail"></span><div>' + escapeHtml(event.text) + '</div></div>';
+      }).join('') + '</div>';
+
+    $('detail-supervisor').addEventListener('click', (event) => askSupervisor(agent, event.currentTarget));
+    $('inspector-body').querySelectorAll('[data-soft-action]').forEach((button) => {
+      button.addEventListener('click', () => showToast('Not wired yet', button.dataset.softAction));
+    });
+  }
+
+  function renderSources(state) {
+    const sources = state.sources || [];
+    if (!sources.length) {
+      $('sources').innerHTML = '<div class="empty">No pulse sources configured.</div>';
+      return;
+    }
+    $('sources').innerHTML = sources.map((source) => (
+      '<div class="source-row">'
+      + '<span class="status-dot ' + (source.exists ? 'status-working' : 'status-dormant') + '"></span>'
+      + '<div><div class="source-name">' + escapeHtml(source.label) + '</div><div class="section-label">' + (source.exists ? 'found' : 'not found') + '</div></div>'
+      + '<div class="source-file">' + escapeHtml(source.file) + '</div>'
+      + '</div>'
+    )).join('');
+  }
+
+  function renderCommits(state) {
+    $('repo-label').textContent = state.repo ? state.repo.split(/[\\/]/).slice(-1)[0] : 'repo';
+    const commits = state.commits || [];
+    if (!commits.length) {
+      $('commits').innerHTML = '<div class="empty">No commits yet.</div>';
+      return;
+    }
+    $('commits').innerHTML = commits.slice(0, 6).map((commit) => (
+      '<div class="commit-row"><span class="commit-sha">' + escapeHtml(commit.sha || '') + '</span>'
+      + '<span class="commit-when">' + escapeHtml(commit.when || '') + '</span>'
+      + escapeHtml(commit.msg || '') + '</div>'
+    )).join('');
   }
 
   function render(state) {
-    const now = state.now;
-    $('branch').textContent = state.branch || '(unknown branch)';
-    $('head').textContent = state.headLog || '(no commits)';
-
-    const agents = state.agents || [];
-    renderStrip(agents, now);
-
-    // Overview — big "done of total" + headline + 4 metric tiles
-    const total = agents.length;
-    const completed = agents.filter(a => a.state === 'completed').length;
-    const working = agents.filter(a => a.state === 'working').length;
-    const silent = agents.filter(a => a.state === 'silent').length;
-    const dormant = agents.filter(a => a.state === 'dormant').length;
-    const remaining = total - completed;
-    const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
-
-    $('overview-big').innerHTML = total === 0
-      ? '<span class="total">no agents yet</span>'
-      : `<span class="done">${completed}</span> <span class="total">of ${total} done</span>`;
-
-    let headline;
-    if (total === 0) {
-      headline = 'Waiting for the first pulse.';
-    } else if (remaining === 0) {
-      headline = `All ${total} agent${total === 1 ? '' : 's'} completed — nothing remaining.`;
-    } else if (silent > 0) {
-      headline = `${remaining} agent${remaining === 1 ? '' : 's'} remaining (${working} working, ${silent} gone dark — ping them from their card).`;
-    } else if (working > 0) {
-      headline = `${remaining} agent${remaining === 1 ? '' : 's'} remaining (${working} working, ${dormant} dormant).`;
-    } else {
-      headline = `${remaining} agent${remaining === 1 ? '' : 's'} remaining (all dormant — may have stalled).`;
-    }
-    $('overview-headline').textContent = headline;
-    $('progress-fill').style.width = pct + '%';
-    $('progress-pct').textContent = pct + '%';
-
-    $('metric-done').textContent = completed;
-    $('metric-progress').textContent = working + silent;
-    $('metric-commits').textContent = state.commitsAhead || 0;
-    if (state.testsGained !== null && state.testsGained !== undefined) {
-      $('metric-tests').innerHTML = `${state.testsCurrent || '—'} <span class="delta">+${state.testsGained}</span>`;
-    } else {
-      $('metric-tests').innerHTML = '<span class="empty">—</span>';
-    }
-    $('stat-agents').textContent = agents.length;
-    $('stat-working').textContent = agents.filter(a => a.state === 'working').length;
-    $('stat-completed').textContent = agents.filter(a => a.state === 'completed').length;
-    $('stat-silent').textContent = agents.filter(a => a.state === 'silent').length;
-
-    const agentsEl = $('agents');
-    if (agents.length === 0) {
-      agentsEl.innerHTML = '<div class="empty">no agents yet — waiting for first pulse</div>';
-    } else {
-      agentsEl.innerHTML = '';
-      for (const agent of agents) {
-        const card = document.createElement('details');
-        card.className = 'agent ' + agent.state;
-        card.dataset.task = agent.task;
-        const renderEvent = (ev) => {
-          let markerHtml = '';
-          if (ev.kind === 'milestone') markerHtml = '<i data-lucide="star"></i>';
-          else if (ev.kind === 'problem') markerHtml = '<i data-lucide="alert-triangle"></i>';
-          return '<div class="event ' + ev.kind + '">'
-            + '<div class="when">' + relTime(ev.ms, now) + '</div>'
-            + '<div class="marker">' + markerHtml + '</div>'
-            + '<div class="text">' + escapeHtml(ev.text) + '</div>'
-            + '</div>';
-        };
-        const allEvents = agent.events.map(renderEvent).join('');
-        const stateLabel = agent.state === 'silent' ? 'gone dark' : agent.state;
-        const needsCheck = agent.state === 'silent' || agent.state === 'dormant';
-        const pingHtml = needsCheck
-          ? '<button class="ping-btn" data-ping="' + escapeHtml(agent.task) + '" title="Write a note to the agent pulse log asking the AI (in chat) to investigate this agent — git status, recent commits, whether it crashed."><i data-lucide="message-circle-question"></i>ask AI</button>'
-          : '';
-        const summaryHtml = ''
-          + '<span class="summary-name">[' + escapeHtml(agent.task) + ']</span>'
-          + '<span class="summary-state">' + stateLabel + '</span>'
-          + '<span class="summary-goal" title="' + escapeHtml(agent.goal) + '">' + escapeHtml(agent.goal) + '</span>'
-          + pingHtml
-          + '<span class="summary-last">' + relTime(agent.lastEmitMs, now) + '</span>';
-        const bodyHtml = ''
-          + '<div class="body">'
-          + '<div class="goal">'
-          + '<span class="goal-label">Goal</span>'
-          + escapeHtml(agent.goal)
-          + '</div>'
-          + '<div class="events">' + allEvents + '</div>'
-          + '</div>';
-        card.innerHTML = '<summary>' + summaryHtml + '</summary>' + bodyHtml;
-        // Wire ping button to call check-status without toggling the details
-        const pingBtn = card.querySelector('.ping-btn');
-        if (pingBtn) {
-          pingBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            checkStatus(agent.task);
-          });
-        }
-        agentsEl.appendChild(card);
-      }
-    }
-
-    const commits = state.commits || [];
-    const commitsEl = $('commits');
-    if (commits.length === 0) {
-      commitsEl.innerHTML = '<div class="empty">no commits yet</div>';
-    } else {
-      commitsEl.innerHTML = commits.map((c) => ''
-        + '<div class="commit">'
-        + '<span class="sha">' + escapeHtml(c.sha || '') + '</span>'
-        + '<span class="when">' + escapeHtml(c.when || '') + '</span>'
-        + escapeHtml(c.msg || '')
-        + '</div>'
-      ).join('');
-    }
-
-    // Re-render Lucide icons after DOM updates
-    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    if (!state) return;
+    latestState = state;
+    renderOverview(state);
+    renderTriage(state);
+    renderFilters(state);
+    renderInspector(state);
+    renderAgents(state);
+    renderSources(state);
+    renderCommits(state);
+    renderIcons();
   }
 
-  let evtSource;
+  $('theme-toggle').addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('agent-dashboard-theme', next);
+    $('theme-toggle').querySelector('span').textContent = next === 'dark' ? 'Light' : 'Nixie';
+  });
+
+  $('global-supervisor').addEventListener('click', (event) => {
+    const agent = selectedAgent(latestState || { agents: [] });
+    askSupervisor(agent, event.currentTarget);
+  });
+
   function connect() {
-    evtSource = new EventSource('/api/stream');
-    evtSource.onopen = () => {
-      const el = $('connected');
-      el.classList.remove('dead');
-      el.classList.add('live');
-      $('connected-text').textContent = 'live';
+    const source = new EventSource('/api/stream');
+    source.onopen = () => {
+      $('connection-state').textContent = 'Live';
     };
-    evtSource.onerror = () => {
-      const el = $('connected');
-      el.classList.remove('live');
-      el.classList.add('dead');
-      $('connected-text').textContent = 'reconnecting…';
+    source.onerror = () => {
+      $('connection-state').textContent = 'Reconnecting';
     };
-    evtSource.onmessage = (ev) => {
-      try { render(JSON.parse(ev.data)); } catch (e) {}
+    source.onmessage = (event) => {
+      try {
+        render(JSON.parse(event.data));
+      } catch {}
     };
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    $('theme-toggle').querySelector('span').textContent = document.documentElement.dataset.theme === 'dark' ? 'Light' : 'Nixie';
+    renderIcons();
+    if (window.__INITIAL_STATE__) {
+      render(window.__INITIAL_STATE__);
+    }
+    fetch('/api/state')
+      .then((response) => response.json())
+      .then(render)
+      .catch(() => {
+        $('connection-state').textContent = 'Waiting';
+      });
     connect();
   });
 </script>
