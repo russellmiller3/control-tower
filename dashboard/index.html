@@ -91,15 +91,6 @@
   }
   details.agent[open] > summary::after { transform: rotate(90deg); }
   details.agent > summary:hover { background: var(--panel-2); }
-  /* Completed agents: rendered as a plain div with a .summary-row — no toggle, no body */
-  div.agent.completed { padding: 0; }
-  div.agent.completed .summary-row {
-    padding: 10px 14px;
-    display: grid;
-    grid-template-columns: auto auto 1fr auto;
-    grid-gap: 10px;
-    align-items: center;
-  }
   details.agent .body {
     padding: 0 16px 14px 16px;
     border-top: 1px solid var(--line);
@@ -697,11 +688,7 @@
     } else {
       agentsEl.innerHTML = '';
       for (const agent of agents) {
-        // Completed agents are non-interactive (nothing to drill into) — render as a plain div
-        // so they can't be accidentally expanded into empty whitespace. Other states use <details>
-        // so the user can drill in for the event timeline.
-        const isCompleted = agent.state === 'completed';
-        const card = document.createElement(isCompleted ? 'div' : 'details');
+        const card = document.createElement('details');
         card.className = 'agent ' + agent.state;
         card.dataset.task = agent.task;
         const renderEvent = (ev) => {
@@ -726,20 +713,15 @@
           + '<span class="summary-goal" title="' + escapeHtml(agent.goal) + '">' + escapeHtml(agent.goal) + '</span>'
           + pingHtml
           + '<span class="summary-last">' + relTime(agent.lastEmitMs, now) + '</span>';
-        if (isCompleted) {
-          // Plain div — single-line summary row, no body, no toggle.
-          card.innerHTML = '<div class="summary-row">' + summaryHtml + '</div>';
-        } else {
-          const bodyHtml = ''
-            + '<div class="body">'
-            + '<div class="goal">'
-            + '<span class="goal-label">Goal</span>'
-            + escapeHtml(agent.goal)
-            + '</div>'
-            + '<div class="events">' + allEvents + '</div>'
-            + '</div>';
-          card.innerHTML = '<summary>' + summaryHtml + '</summary>' + bodyHtml;
-        }
+        const bodyHtml = ''
+          + '<div class="body">'
+          + '<div class="goal">'
+          + '<span class="goal-label">Goal</span>'
+          + escapeHtml(agent.goal)
+          + '</div>'
+          + '<div class="events">' + allEvents + '</div>'
+          + '</div>';
+        card.innerHTML = '<summary>' + summaryHtml + '</summary>' + bodyHtml;
         // Wire ping button to call check-status without toggling the details
         const pingBtn = card.querySelector('.ping-btn');
         if (pingBtn) {
