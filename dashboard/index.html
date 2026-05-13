@@ -135,6 +135,20 @@
   }
   .ping-btn:hover { background: var(--accent); }
   .ping-btn i { width: 12px; height: 12px; }
+  .ping-btn[disabled] {
+    background: var(--panel-2);
+    color: var(--dim);
+    cursor: default;
+  }
+  .ping-btn[disabled]:hover { background: var(--panel-2); }
+  .toast {
+    min-width: 320px;
+    max-width: 500px;
+    text-align: left;
+    line-height: 1.5;
+  }
+  .toast .toast-title { color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+  .toast .toast-body { color: var(--text); font-size: 12px; }
   .agent header.row {
     display: flex;
     align-items: baseline;
@@ -521,23 +535,50 @@
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  function showToast(text) {
+  function showToast(titleHtml, bodyHtml, durationMs) {
     const t = $('toast');
-    t.textContent = text;
+    t.innerHTML = '<div class="toast-title">' + titleHtml + '</div><div class="toast-body">' + bodyHtml + '</div>';
     t.classList.add('show');
     clearTimeout(showToast._timer);
-    showToast._timer = setTimeout(() => t.classList.remove('show'), 2400);
+    showToast._timer = setTimeout(() => t.classList.remove('show'), durationMs || 6000);
   }
 
-  function checkStatus(task) {
+  function checkStatus(task, btn) {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="check"></i>pinged';
+      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    }
     fetch('/api/check-status', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ task }),
     }).then((r) => r.json()).then((j) => {
-      if (j.ok) showToast('Check requested for ' + task + ' — Claude will investigate.');
-      else showToast('Could not request check: ' + (j.error || 'unknown'));
-    }).catch((err) => showToast('Network error: ' + err.message));
+      if (j.ok) {
+        showToast(
+          'Ping sent for [' + escapeHtml(task) + ']',
+          'A note was written to the agent pulse log asking Claude to look into this agent. ' +
+          'Claude will see it in their next reply (or sooner if they were already mid-turn) ' +
+          'and respond in chat with what they find — git status, recent commits on its branch, ' +
+          'whether it crashed silently, etc. No action needed from you.',
+          7000
+        );
+      } else {
+        showToast('Ping failed', escapeHtml(j.error || 'unknown error') + '. Try again or check the dashboard server logs.', 5000);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="bell-ring"></i>ping';
+          if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+        }
+      }
+    }).catch((err) => {
+      showToast('Network error', escapeHtml(err.message), 5000);
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="bell-ring"></i>ping';
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      }
+    });
   }
 
   function scrollToAgent(task) {
