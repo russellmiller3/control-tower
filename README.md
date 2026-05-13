@@ -4,7 +4,37 @@ A live control plane for background coding agents.
 
 When you spawn multiple Claude Code or Claude Cowork agents in parallel — each one off doing TDD on its own feature — this dashboard shows you what each one is doing, how it's doing, and what they've actually shipped. Plain English. Newest first. Glanceable in a browser tab.
 
-![preview](./preview.png)
+```
+┌─ Agent Dashboard ─────────────────────────────────────────────────────────────┐
+│ feature/lenat-in-clear · c6c2fb6 36 minutes ago                               │
+│                                                                                │
+│ 5 of 6 done   1 remaining (1 working — click silent chips to check)            │
+│ ████████████████████████████████████████░░░░░░░  83%                          │
+│                                                                                │
+│ ┌─ Done ─┐ ┌─ In progress ─┐ ┌─ Commits this run ─┐ ┌─ Tests gained ─┐         │
+│ │   5    │ │       1       │ │        36          │ │  3172 +134     │         │
+│ └────────┘ └───────────────┘ └────────────────────┘ └────────────────┘         │
+│                                                                                │
+│ ● [Phase 5.5]  [Phase 6] ✓  [Phase 5] ✓  [Phase 3] ✓  [Phase 2] ✓  [Phase 1] ✓ │
+│ ────────────────────────────────────────────────────────────────────────────── │
+│                                                                                │
+│ ● [Phase 5.5]     working    last emit: 12s ago                                │
+│   Goal: Add DaisyUI form widgets + Nixie theme so Lenat-in-Clear can match     │
+│         the reference app's visual identity without per-app CSS overrides.     │
+│   12s ago  ★ All 13 cycle tests green. Running full suite now.                 │
+│   2m ago   ★ Parser side green (6 of 6). Compiler + theme tokens next.         │
+│   ▸ show 4 older                                                               │
+│                                                                                │
+│ ✓ [Phase 6]       completed  last emit: 22m ago                                │
+│   Goal: Per-call AI provider override so 'ask ai' can route to OpenRouter,     │
+│         Gemini, or OpenAI instead of just Anthropic.                           │
+│   ★ All 4 cycles shipped. Tests 3144 -> 3159. Merged ff-only. 0 red flags.     │
+│   ▸ show 6 older                                                               │
+│                                                                                │
+│                          Agent Dashboard · built by Russell Miller             │
+│                          ✉ rmiller@zavient.com   in LinkedIn                   │
+└────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## What you get
 
@@ -107,10 +137,9 @@ agent-dashboard/
 │   ├── pulse-enforcer-subagent.mjs ← refuses silent agent stops
 │   └── parallel-when-possible.mjs  ← nudges toward parallel agent dispatch
 ├── scripts/
-│   ├── install.sh                  ← macOS / Linux installer
-│   ├── install.ps1                 ← Windows PowerShell installer
-│   └── pulse-watch.cjs             ← terminal-based alternative to the web UI
-└── preview.png                     ← screenshot (optional)
+    ├── install.sh                  ← macOS / Linux installer
+    ├── install.ps1                 ← Windows PowerShell installer
+    └── pulse-watch.cjs             ← terminal-based alternative to the web UI
 ```
 
 ## Licensing & pricing
