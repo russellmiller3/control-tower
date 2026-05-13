@@ -1,27 +1,43 @@
-# Agent Dashboard
+# Agent Rescue Board
 
-A live control plane for background coding agents.
+A local rescue board for parallel Codex and Claude agents.
 
-When you spawn multiple Claude Code or Claude Cowork agents in parallel — each one off doing TDD on its own feature — this dashboard shows you what each one is doing, how it's doing, and what they've actually shipped. Plain English. Newest first. Glanceable in a browser tab.
+When you spawn multiple agents in parallel, the expensive failure mode is not "I lack charts." It is "I lost track of which agent is stuck." Agent Rescue Board finds the agent most likely to be stalled, explains why, and gives you a Supervisor action to inspect it before it burns context, money, or momentum.
 
-![Agent Dashboard preview](./preview.png)
+![Agent Rescue Board preview](./preview.png)
 
 ## What you get
 
-- **Web dashboard at `localhost:9999`** — triage-first agent cards with state, goal, activity, source, and heartbeat
-- **Agent detail inspector** — click any agent to see its goal, timeline, diagnosis, and recovery actions
+- **Rescue-first web board at `localhost:9999`** — headline positioning, rescue queue, run health, agent cards, and detail inspector
+- **Rescue Queue** — ranks agents that are silent, dormant, or showing problem signals
+- **Rescue Inspector** — click an agent to see its goal, timeline, diagnosis, and recovery actions
 - **Supervisor inspect button** — writes a plain-English check request back to the right pulse log
 - **Codex + Claude source detection** — watches Windows-friendly `.codex` and `.claude` state paths automatically
 - **Light + nixie dark themes** — use the toggle or `?theme=light` / `?theme=dark` for screenshots
+- **Static screenshot mode** — add `?static=1` so portfolio captures do not wait on the live event stream
 - **Recent commits sidebar** — live `git log` of the active branch
 - **Live SSE feed plus first-paint hydration** — events stream live, and screenshots render populated immediately
-- **Terminal watcher** as a fallback — `pulse-watch.cjs` does the same thing in a terminal window for headless use
 - **Terminal watcher** as a fallback — `pulse-watch.cjs` does the same thing in a terminal window for headless use
 - **4 hooks** that make agent control structural rather than discipline-based:
   - **`worktree-on-agent-spawn`** — refuses to spawn an agent without `isolation: "worktree"` (forces parallel-safe isolation)
   - **`pulse-on-agent-activity`** — gates spawns on a pulse-contract reference + auto-emits a baseline pulse + throttles ambient updates to your replies
   - **`pulse-enforcer-subagent`** — refuses to let a subagent stop without emitting at least one narrative pulse
   - **`parallel-when-possible`** — if 1 agent is in flight while 2+ parallel-safe phases sit unstarted, nudges the orchestrator to spawn the rest
+
+## Positioning
+
+The sharp paid feature is **agent rescue**, not generic observability.
+
+Competitors can show sessions, costs, search, and replay. This project leads
+with the operational pain: a solo developer or small team kicked off several
+agents and now needs to know which one needs human attention first.
+
+That makes the value concrete:
+
+- Find the stuck run.
+- Explain why it looks stuck.
+- Package the next inspection prompt.
+- Keep the developer shipping instead of spelunking logs.
 
 ## How it works (30 seconds)
 

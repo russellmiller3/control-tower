@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<title>Agent Dashboard</title>
+<title>Agent Rescue Board</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -116,6 +116,7 @@
     margin-top: 8px;
     color: var(--muted);
     font-size: 14px;
+    max-width: 720px;
   }
 
   .top-actions {
@@ -197,6 +198,163 @@
     width: 16px;
     height: 16px;
     flex: 0 0 auto;
+  }
+
+  .positioning {
+    display: grid;
+    grid-template-columns: minmax(360px, 1.08fr) minmax(300px, 0.82fr) minmax(260px, 0.62fr);
+    gap: 14px;
+    align-items: stretch;
+    margin-bottom: 14px;
+  }
+
+  .hero-copy,
+  .rescue-card,
+  .loop-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .hero-copy h2 {
+    font-family: var(--serif);
+    color: var(--text-strong);
+    font-size: clamp(32px, 3.4vw, 56px);
+    line-height: 0.98;
+    letter-spacing: 0;
+    margin: 9px 0 12px;
+    max-width: 780px;
+  }
+
+  .hero-copy p {
+    color: var(--muted);
+    margin: 0;
+    max-width: 720px;
+    font-size: 15px;
+  }
+
+  .wedge-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--amber);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .proof-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .proof-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 7px 9px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .rescue-list {
+    display: grid;
+    gap: 9px;
+  }
+
+  .rescue-row {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--yellow);
+    background: var(--panel-2);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 10px;
+    text-align: left;
+  }
+
+  .rescue-row:hover {
+    border-color: var(--line-strong);
+    background: var(--panel-3);
+  }
+
+  .rescue-title {
+    color: var(--text-strong);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .rescue-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 7px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .rescue-reason {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .loop-steps {
+    display: grid;
+    gap: 9px;
+    margin-top: 12px;
+  }
+
+  .loop-step {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 9px;
+    align-items: start;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 9px;
+  }
+
+  .step-index {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--amber);
+    font-family: var(--serif);
+    line-height: 1;
+  }
+
+  .loop-copy strong {
+    display: block;
+    color: var(--text-strong);
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .loop-copy span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 2px;
   }
 
   .overview {
@@ -807,6 +965,9 @@
   }
 
   @media (max-width: 1180px) {
+    .positioning {
+      grid-template-columns: 1fr;
+    }
     .overview {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -826,6 +987,7 @@
       padding: 16px 14px 132px;
     }
     .topbar,
+    .positioning,
     .controls,
     footer.portfolio {
       grid-template-columns: 1fr;
@@ -849,16 +1011,46 @@
 <div class="shell">
   <header class="topbar">
     <div class="brand">
-      <h1>Agent Dashboard</h1>
-      <div class="tagline">A control room for Codex and Claude agents: see the run, find the backup, send help.</div>
+      <h1>Agent Rescue Board</h1>
+      <div class="tagline">A local triage board for parallel Codex and Claude runs: find the stuck agent, inspect the last moves, send help.</div>
     </div>
     <div class="top-actions">
       <div class="meta-pill" title="Current branch"><i class="icon" data-lucide="git-branch"></i><span id="branch">loading</span></div>
       <div class="meta-pill" title="Latest commit"><i class="icon" data-lucide="git-commit-horizontal"></i><span id="head">loading</span></div>
       <button class="theme-btn" id="theme-toggle" type="button"><i class="icon" data-lucide="sun-moon"></i><span>Light</span></button>
-      <button class="action-btn primary" id="global-supervisor" type="button"><i class="icon" data-lucide="scan-search"></i><span>Ask Supervisor</span></button>
+      <button class="action-btn primary" id="global-supervisor" type="button" data-reset-label="Rescue Selected"><i class="icon" data-lucide="scan-search"></i><span>Rescue Selected</span></button>
     </div>
   </header>
+
+  <section class="positioning" aria-label="Product positioning">
+    <div class="hero-copy">
+      <div class="wedge-label"><i class="icon" data-lucide="life-buoy"></i><span>Sharpest paid feature</span></div>
+      <h2>Recover stuck agents before they burn context, money, or momentum.</h2>
+      <p>Visibility is table stakes. The paid wedge is rescue: rank the agent most likely to be stalled, explain why, then hand the Supervisor the recovery packet.</p>
+      <div class="proof-row">
+        <span class="proof-pill"><i class="icon" data-lucide="terminal"></i>Codex + Claude</span>
+        <span class="proof-pill"><i class="icon" data-lucide="monitor-cog"></i>Windows-local first</span>
+        <span class="proof-pill"><i class="icon" data-lucide="shield-check"></i>No fake kill switch</span>
+      </div>
+    </div>
+
+    <div class="rescue-card">
+      <div class="panel-head">
+        <h2 class="panel-title">Rescue Queue</h2>
+        <div class="section-label" id="rescue-count">0 urgent</div>
+      </div>
+      <div id="rescue-queue" class="rescue-list"><div class="empty">Waiting for agent signals.</div></div>
+    </div>
+
+    <div class="loop-card">
+      <div class="section-label">Stall-to-recovery loop</div>
+      <div class="loop-steps">
+        <div class="loop-step"><span class="step-index">1</span><div class="loop-copy"><strong>Detect silence</strong><span>Spot the agent that stopped producing useful output.</span></div></div>
+        <div class="loop-step"><span class="step-index">2</span><div class="loop-copy"><strong>Read the last moves</strong><span>Show the goal, fresh events, and likely failure mode.</span></div></div>
+        <div class="loop-step"><span class="step-index">3</span><div class="loop-copy"><strong>Send Supervisor</strong><span>Write a recovery request back into the agent pulse stream.</span></div></div>
+      </div>
+    </div>
+  </section>
 
   <section class="overview" aria-label="Run health">
     <div class="health">
@@ -870,7 +1062,7 @@
         <div class="progress-fill" id="progress-fill"></div>
       </div>
     </div>
-    <div class="metric"><div class="metric-label">Need attention</div><div class="metric-value" id="metric-attention">0</div></div>
+    <div class="metric"><div class="metric-label">Rescue queue</div><div class="metric-value" id="metric-attention">0</div></div>
     <div class="metric"><div class="metric-label">Working</div><div class="metric-value" id="metric-working">0</div></div>
     <div class="metric"><div class="metric-label">Commits</div><div class="metric-value" id="metric-commits">0</div></div>
     <div class="metric"><div class="metric-label">Tests</div><div class="metric-value" id="metric-tests">--</div></div>
@@ -893,7 +1085,7 @@
     <aside class="right-rail">
       <section class="inspector" aria-label="Agent detail">
         <div class="panel-head">
-          <h2 class="panel-title">Agent Detail</h2>
+          <h2 class="panel-title">Rescue Inspector</h2>
           <div class="section-label" id="detail-source">No selection</div>
         </div>
         <div id="inspector-body" class="inspector-empty">Select an agent to inspect its goal, timeline, and recovery actions.</div>
@@ -941,7 +1133,9 @@
   let triageFilter = 'all';
   let sourceFilter = 'all';
 
-  const requestedTheme = new URLSearchParams(window.location.search).get('theme');
+  const urlParams = new URLSearchParams(window.location.search);
+  const requestedTheme = urlParams.get('theme');
+  const useDemo = urlParams.has('demo');
   const storedTheme = localStorage.getItem('agent-dashboard-theme');
   const initialTheme = requestedTheme || storedTheme;
   if (initialTheme === 'light' || initialTheme === 'dark') {
@@ -1042,11 +1236,90 @@
     if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
   }
 
+  function demoEvent(now, minutesAgo, kind, text) {
+    return { ms: now - minutesAgo * 60 * 1000, kind, text };
+  }
+
+  function demoState() {
+    const now = Date.now();
+    return {
+      now,
+      repo: 'agent-dashboard',
+      branch: 'feature/sharpen-positioning',
+      headLog: 'demo 2m ago Rescue queue preview',
+      commitsAhead: 4,
+      testsBaseline: 3111,
+      testsCurrent: 3172,
+      testsGained: 61,
+      sources: [
+        { key: 'codex', label: 'Codex', file: 'C:\\Users\\rmill\\.codex\\state\\agent-pulse.log', exists: true },
+        { key: 'claude', label: 'Claude', file: 'C:\\Users\\rmill\\.claude\\state\\agent-pulse.log', exists: true },
+        { key: 'local', label: 'Local', file: 'C:\\Users\\rmill\\Desktop\\programming\\agent-dashboard\\agent-pulse.log', exists: true },
+      ],
+      agents: [
+        {
+          task: 'Auth cleanup',
+          sourceKey: 'codex',
+          sourceLabel: 'Codex',
+          state: 'working',
+          goal: 'Remove stale auth shim and prove login still works before merge.',
+          lastEmitMs: now - 35 * 1000,
+          events: [
+            { ms: now - 35 * 1000, kind: 'normal', text: 'Replacing the stale shim and checking login behavior now.' },
+            demoEvent(now, 2, 'normal', 'Goal: Remove stale auth shim and prove login still works before merge.'),
+          ],
+        },
+        {
+          task: 'Parser tests',
+          sourceKey: 'claude',
+          sourceLabel: 'Claude',
+          state: 'working',
+          goal: 'Add regression coverage for malformed config files.',
+          lastEmitMs: now - 50 * 1000,
+          events: [
+            { ms: now - 50 * 1000, kind: 'normal', text: 'Running the malformed config cases against Windows paths.' },
+            demoEvent(now, 3, 'normal', 'Goal: Add regression coverage for malformed config files.'),
+          ],
+        },
+        {
+          task: 'Docs polish',
+          sourceKey: 'local',
+          sourceLabel: 'Local',
+          state: 'working',
+          goal: 'Update README screenshots and explain the rescue workflow.',
+          lastEmitMs: now - 65 * 1000,
+          events: [
+            { ms: now - 65 * 1000, kind: 'normal', text: 'Updating the README copy and checking the preview image.' },
+            demoEvent(now, 2, 'normal', 'Goal: Update README screenshots and explain the rescue workflow.'),
+          ],
+        },
+        {
+          task: 'Release check',
+          sourceKey: 'codex',
+          sourceLabel: 'Codex',
+          state: 'working',
+          goal: 'Verify the dashboard still works on Windows before pushing main.',
+          lastEmitMs: now - 25 * 1000,
+          events: [
+            { ms: now - 25 * 1000, kind: 'normal', text: 'Running the final smoke check against the local dashboard.' },
+            demoEvent(now, 1, 'normal', 'Goal: Verify the dashboard still works on Windows before pushing main.'),
+          ],
+        },
+      ],
+      commits: [
+        { sha: 'a712fb8', when: '62 minutes ago', msg: 'Redesign agent dashboard portfolio UI' },
+        { sha: '43ec4c4', when: '2 hours ago', msg: 'Restore completed-card expand behavior' },
+        { sha: 'a797811', when: '2 hours ago', msg: 'Show completed cards as plain divs' },
+      ],
+    };
+  }
+
   function askSupervisor(agent, button) {
     if (!agent) {
       showToast('Nothing needs help', 'No backed-up agent is selected right now.');
       return;
     }
+    const resetLabel = button ? button.dataset.resetLabel || 'Have Supervisor Inspect' : 'Have Supervisor Inspect';
     if (button) {
       button.disabled = true;
       button.innerHTML = '<i class="icon" data-lucide="check"></i><span>Supervisor asked</span>';
@@ -1064,7 +1337,7 @@
       showToast('Supervisor request failed', error.message);
       if (button) {
         button.disabled = false;
-        button.innerHTML = '<i class="icon" data-lucide="scan-search"></i><span>Have Supervisor Inspect</span>';
+        button.innerHTML = '<i class="icon" data-lucide="scan-search"></i><span>' + escapeHtml(resetLabel) + '</span>';
         renderIcons();
       }
     });
@@ -1099,7 +1372,7 @@
 
     let copy = 'Waiting for the first agent pulse.';
     if (total && attention) {
-      copy = attention + ' agent' + (attention === 1 ? '' : 's') + ' need attention. Start there before scanning healthy work.';
+      copy = attention + ' agent' + (attention === 1 ? '' : 's') + ' need rescue. Start there before scanning healthy work.';
     } else if (total && completed === total) {
       copy = 'All agents report complete. This is the merge-review moment.';
     } else if (total) {
@@ -1118,7 +1391,7 @@
     };
     const items = [
       ['all', 'All agents'],
-      ['attention', 'Needs attention'],
+      ['attention', 'Needs rescue'],
       ['active', 'Safe to ignore'],
       ['ready', 'Ready to merge'],
     ];
@@ -1152,6 +1425,46 @@
     $('filters').querySelectorAll('[data-source]').forEach((button) => {
       button.addEventListener('click', () => {
         sourceFilter = button.dataset.source;
+        render(latestState);
+      });
+    });
+  }
+
+  function rescueRank(agent) {
+    if (hasProblem(agent)) return 3;
+    if (agent.state === 'silent') return 2;
+    if (agent.state === 'dormant') return 1;
+    return 0;
+  }
+
+  function rescueCandidates(state) {
+    return (state.agents || [])
+      .filter((agent) => triageOf(agent) === 'attention')
+      .sort((a, b) => rescueRank(b) - rescueRank(a) || a.lastEmitMs - b.lastEmitMs);
+  }
+
+  function renderRescueQueue(state) {
+    const urgent = rescueCandidates(state);
+    $('rescue-count').textContent = urgent.length + ' urgent';
+    if (!urgent.length) {
+      $('rescue-queue').innerHTML = '<div class="empty">No stuck agents. Keep the run moving.</div>';
+      return;
+    }
+
+    $('rescue-queue').innerHTML = urgent.slice(0, 3).map((agent) => {
+      const key = agentKey(agent);
+      const diag = diagnosis(agent, state.now);
+      return '<button type="button" class="rescue-row" data-rescue="' + escapeHtml(key) + '">'
+        + '<div class="rescue-title">' + escapeHtml(agent.task) + '</div>'
+        + '<div class="rescue-meta"><span>' + escapeHtml(agent.sourceLabel || 'Agent') + '</span><span>' + relTime(agent.lastEmitMs, state.now) + '</span><span>' + stateLabel(agent) + '</span></div>'
+        + '<div class="rescue-reason">' + escapeHtml(diag.title) + '</div>'
+        + '</button>';
+    }).join('');
+
+    $('rescue-queue').querySelectorAll('[data-rescue]').forEach((row) => {
+      row.addEventListener('click', () => {
+        selectedKey = row.dataset.rescue;
+        triageFilter = 'all';
         render(latestState);
       });
     });
@@ -1258,7 +1571,7 @@
       + '<div class="goal-box"><div class="card-label">Current goal</div><div class="goal-text">' + escapeHtml(agent.goal) + '</div></div>'
       + '<div class="diagnosis ' + diag.tone + '"><strong>' + escapeHtml(diag.title) + '</strong><span>' + escapeHtml(diag.body) + '</span></div>'
       + '<div class="detail-actions">'
-      + '<button type="button" class="action-btn primary" id="detail-supervisor"><i class="icon" data-lucide="scan-search"></i><span>Have Supervisor Inspect</span></button>'
+      + '<button type="button" class="action-btn primary" id="detail-supervisor" data-reset-label="Have Supervisor Inspect"><i class="icon" data-lucide="scan-search"></i><span>Have Supervisor Inspect</span></button>'
       + '<div class="secondary-actions">'
       + '<button type="button" class="action-btn secondary" data-soft-action="Transcript paths are not in the pulse log yet. Add transcript metadata to enable this."><i class="icon" data-lucide="file-search"></i><span>Transcript</span></button>'
       + '<button type="button" class="action-btn secondary" data-soft-action="Resume needs a runner integration. This dashboard already tells you who needs it."><i class="icon" data-lucide="play"></i><span>Resume</span></button>'
@@ -1309,6 +1622,7 @@
     renderOverview(state);
     renderTriage(state);
     renderFilters(state);
+    renderRescueQueue(state);
     renderInspector(state);
     renderAgents(state);
     renderSources(state);
@@ -1346,6 +1660,11 @@
   document.addEventListener('DOMContentLoaded', () => {
     $('theme-toggle').querySelector('span').textContent = document.documentElement.dataset.theme === 'dark' ? 'Light' : 'Nixie';
     renderIcons();
+    if (useDemo) {
+      render(demoState());
+      $('connection-state').textContent = 'Demo preview';
+      return;
+    }
     if (window.__INITIAL_STATE__) {
       render(window.__INITIAL_STATE__);
     }
@@ -1355,7 +1674,11 @@
       .catch(() => {
         $('connection-state').textContent = 'Waiting';
       });
-    connect();
+    if (urlParams.has('static')) {
+      $('connection-state').textContent = 'Static preview';
+    } else {
+      connect();
+    }
   });
 </script>
 </body>

@@ -86,5 +86,11 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
 
   const themedPage = await fetch(`http://127.0.0.1:${port}/?theme=light`);
   assert.equal(themedPage.status, 200);
-  assert.match(await themedPage.text(), /window\.__INITIAL_STATE__ = /);
+  const themedHtml = await themedPage.text();
+  assert.match(themedHtml, /window\.__INITIAL_STATE__ = /);
+  assert.match(themedHtml, /Agent Rescue Board/);
+  assert.match(themedHtml, /Rescue Queue/);
+  assert.match(themedHtml, /Stall-to-recovery loop/);
+  assert.match(themedHtml, /Demo preview/);
+  assert.match(themedHtml, /Auth cleanup/);
 });
