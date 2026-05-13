@@ -58,7 +58,8 @@
   .dot.completed { background: var(--cyan); }
   .layout { display: grid; grid-template-columns: 1fr 340px; gap: 18px; }
   @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-  .agents { display: grid; gap: 16px; }
+  .agents { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 1100px) { .agents { grid-template-columns: 1fr; } }
   .agent {
     background: var(--panel);
     border: 1px solid var(--line);
@@ -74,10 +75,10 @@
   details.agent > summary {
     cursor: pointer;
     list-style: none;
-    padding: 12px 16px;
+    padding: 10px 14px;
     display: grid;
     grid-template-columns: auto auto 1fr auto auto;
-    grid-gap: 10px;
+    grid-gap: 8px;
     align-items: center;
   }
   details.agent > summary::-webkit-details-marker { display: none; }
@@ -90,10 +91,15 @@
   }
   details.agent[open] > summary::after { transform: rotate(90deg); }
   details.agent > summary:hover { background: var(--panel-2); }
-  /* Completed agents: not collapsible — they're done, nothing to drill into */
-  details.agent.completed > summary { cursor: default; }
-  details.agent.completed > summary::after { display: none; }
-  details.agent.completed > summary:hover { background: transparent; }
+  /* Completed agents: rendered as a plain div with a .summary-row — no toggle, no body */
+  div.agent.completed { padding: 0; }
+  div.agent.completed .summary-row {
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    grid-gap: 10px;
+    align-items: center;
+  }
   details.agent .body {
     padding: 0 16px 14px 16px;
     border-top: 1px solid var(--line);
@@ -691,7 +697,11 @@
     } else {
       agentsEl.innerHTML = '';
       for (const agent of agents) {
-        const card = document.createElement('details');
+        // Completed agents are non-interactive (nothing to drill into) — render as a plain div
+        // so they can't be accidentally expanded into empty whitespace. Other states use <details>
+        // so the user can drill in for the event timeline.
+        const isCompleted = agent.state === 'completed';
+        const card = document.createElement(isCompleted ? 'div' : 'details');
         card.className = 'agent ' + agent.state;
         card.dataset.task = agent.task;
         const renderEvent = (ev) => {
@@ -716,15 +726,20 @@
           + '<span class="summary-goal" title="' + escapeHtml(agent.goal) + '">' + escapeHtml(agent.goal) + '</span>'
           + pingHtml
           + '<span class="summary-last">' + relTime(agent.lastEmitMs, now) + '</span>';
-        const bodyHtml = ''
-          + '<div class="body">'
-          + '<div class="goal">'
-          + '<span class="goal-label">Goal</span>'
-          + escapeHtml(agent.goal)
-          + '</div>'
-          + '<div class="events">' + allEvents + '</div>'
-          + '</div>';
-        card.innerHTML = '<summary>' + summaryHtml + '</summary>' + bodyHtml;
+        if (isCompleted) {
+          // Plain div — single-line summary row, no body, no toggle.
+          card.innerHTML = '<div class="summary-row">' + summaryHtml + '</div>';
+        } else {
+          const bodyHtml = ''
+            + '<div class="body">'
+            + '<div class="goal">'
+            + '<span class="goal-label">Goal</span>'
+            + escapeHtml(agent.goal)
+            + '</div>'
+            + '<div class="events">' + allEvents + '</div>'
+            + '</div>';
+          card.innerHTML = '<summary>' + summaryHtml + '</summary>' + bodyHtml;
+        }
         // Wire ping button to call check-status without toggling the details
         const pingBtn = card.querySelector('.ping-btn');
         if (pingBtn) {
