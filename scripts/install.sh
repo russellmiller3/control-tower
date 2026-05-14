@@ -18,7 +18,7 @@ echo ""
 mkdir -p "${HOOKS_DIR}" "${STATE_DIR}"
 
 # 1. Copy hooks
-for hook in worktree-on-agent-spawn.mjs pulse-on-agent-activity.mjs pulse-enforcer-subagent.mjs parallel-when-possible.mjs; do
+for hook in worktree-on-agent-spawn.mjs pulse-on-agent-activity.mjs pulse-enforcer-subagent.mjs main-thread-pulse.mjs parallel-when-possible.mjs; do
   cp "${REPO_DIR}/hooks/${hook}" "${HOOKS_DIR}/${hook}"
   echo "  installed hook: ${hook}"
 done
@@ -46,6 +46,14 @@ if [ ! -f "${SETTINGS}" ]; then
         "hooks": [
           { "type": "command", "command": "node ~/.claude/hooks/worktree-on-agent-spawn.mjs", "timeout": 4, "statusMessage": "Enforcing worktree isolation on Agent spawn..." },
           { "type": "command", "command": "node ~/.claude/hooks/pulse-on-agent-activity.mjs", "timeout": 6, "statusMessage": "Pulse contract gate + baseline emit..." }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|MultiEdit|Write",
+        "hooks": [
+          { "type": "command", "command": "node ~/.claude/hooks/main-thread-pulse.mjs", "timeout": 4, "statusMessage": "Writing main-thread pulse..." }
         ]
       }
     ],

@@ -10,6 +10,14 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|MultiEdit|Write",
+        "hooks": [
+          { "type": "command", "command": "node ~/.claude/hooks/main-thread-pulse.mjs", "timeout": 4, "statusMessage": "Writing main-thread pulse..." }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

@@ -23,6 +23,7 @@ $hooks = @(
   "worktree-on-agent-spawn.mjs",
   "pulse-on-agent-activity.mjs",
   "pulse-enforcer-subagent.mjs",
+  "main-thread-pulse.mjs",
   "parallel-when-possible.mjs"
 )
 foreach ($hook in $hooks) {
@@ -45,6 +46,14 @@ $snippet = @'
         "hooks": [
           { "type": "command", "command": "node ~/.claude/hooks/worktree-on-agent-spawn.mjs", "timeout": 4, "statusMessage": "Enforcing worktree isolation on Agent spawn..." },
           { "type": "command", "command": "node ~/.claude/hooks/pulse-on-agent-activity.mjs", "timeout": 6, "statusMessage": "Pulse contract gate + baseline emit..." }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|MultiEdit|Write",
+        "hooks": [
+          { "type": "command", "command": "node ~/.claude/hooks/main-thread-pulse.mjs", "timeout": 4, "statusMessage": "Writing main-thread pulse..." }
         ]
       }
     ],

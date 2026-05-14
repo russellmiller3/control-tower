@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
-<title>Agent Rescue Board</title>
+<title>Agent Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -72,7 +72,7 @@
     color: var(--text);
     font-family: var(--sans);
     line-height: 1.45;
-    padding: 22px 24px 92px;
+    padding: 22px 24px 104px;
   }
 
   button, a {
@@ -271,6 +271,34 @@
     gap: 9px;
   }
 
+  .hook-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .hook-row {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 10px;
+  }
+
+  .hook-row span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .hook-row strong {
+    color: var(--text-strong);
+    font-family: var(--mono);
+    font-size: 11px;
+    overflow-wrap: anywhere;
+  }
+
   .rescue-row {
     width: 100%;
     border: 1px solid var(--line);
@@ -427,6 +455,15 @@
     min-width: 0;
   }
 
+  .metric.danger {
+    border-color: var(--red);
+    background: var(--red-soft);
+  }
+
+  .metric.danger .metric-value {
+    color: var(--red);
+  }
+
   .metric-label,
   .section-label,
   .card-label {
@@ -571,6 +608,10 @@
   .agent-card.silent { border-left-color: var(--yellow); }
   .agent-card.dormant { border-left-color: var(--muted); }
   .agent-card.problem { border-left-color: var(--red); }
+  .agent-card.problem {
+    background: var(--red-soft);
+    border-color: rgba(200, 55, 50, 0.45);
+  }
 
   .agent-head {
     display: grid;
@@ -624,6 +665,19 @@
     color: var(--green);
     background: var(--green-soft);
     border-color: rgba(88, 224, 111, 0.28);
+  }
+
+  .badge.rescue {
+    color: var(--red);
+    background: var(--red-soft);
+    border-color: rgba(200, 55, 50, 0.4);
+  }
+
+  .usage-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
   }
 
   .time-chip {
@@ -916,14 +970,40 @@
     bottom: 0;
     z-index: 10;
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) auto;
+    grid-template-columns: minmax(220px, 1fr) minmax(360px, auto);
     gap: 18px;
     align-items: center;
-    min-height: 68px;
-    padding: 12px 24px;
+    min-height: 82px;
+    padding: 10px 24px;
     background: var(--footer);
     border-top: 1px solid var(--line);
     backdrop-filter: blur(12px);
+  }
+
+  .portfolio-note strong {
+    display: block;
+    color: var(--text-strong);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.05;
+  }
+
+  .portfolio-note span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .portfolio-card {
+    justify-self: end;
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 14px;
+    align-items: center;
+    border: 1px solid var(--line-strong);
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    box-shadow: 0 0 22px var(--amber-glow);
   }
 
   .signature strong {
@@ -984,7 +1064,7 @@
 
   @media (max-width: 780px) {
     body {
-      padding: 16px 14px 132px;
+      padding: 16px 14px 176px;
     }
     .topbar,
     .positioning,
@@ -996,13 +1076,17 @@
     .contact-links {
       justify-content: flex-start;
     }
+    .portfolio-card {
+      justify-self: stretch;
+      grid-template-columns: 1fr;
+    }
     .overview,
     .agents-grid,
     .secondary-actions {
       grid-template-columns: 1fr;
     }
     footer.portfolio {
-      min-height: 112px;
+      min-height: 156px;
     }
   }
 </style>
@@ -1011,43 +1095,49 @@
 <div class="shell">
   <header class="topbar">
     <div class="brand">
-      <h1>Agent Rescue Board</h1>
-      <div class="tagline">A local triage board for parallel Codex and Claude runs: find the stuck agent, inspect the last moves, send help.</div>
+      <h1>Agent Dashboard</h1>
+      <div class="tagline">Hook-enforced updates for parallel Codex and Claude agents.</div>
     </div>
     <div class="top-actions">
       <div class="meta-pill" title="Current branch"><i class="icon" data-lucide="git-branch"></i><span id="branch">loading</span></div>
       <div class="meta-pill" title="Latest commit"><i class="icon" data-lucide="git-commit-horizontal"></i><span id="head">loading</span></div>
-      <button class="theme-btn" id="theme-toggle" type="button"><i class="icon" data-lucide="sun-moon"></i><span>Light</span></button>
-      <button class="action-btn primary" id="global-supervisor" type="button" data-reset-label="Rescue Selected"><i class="icon" data-lucide="scan-search"></i><span>Rescue Selected</span></button>
+      <button class="theme-btn" id="theme-toggle" type="button"><i class="icon" data-lucide="moon"></i><span>Night</span></button>
+      <button class="action-btn primary" id="global-supervisor" type="button" data-reset-label="Ask Supervisor Agent"><i class="icon" data-lucide="scan-search"></i><span>Ask Supervisor Agent</span></button>
     </div>
   </header>
 
   <section class="positioning" aria-label="Product positioning">
     <div class="hero-copy">
-      <div class="wedge-label"><i class="icon" data-lucide="life-buoy"></i><span>Sharpest paid feature</span></div>
-      <h2>Recover stuck agents before they burn context, money, or momentum.</h2>
-      <p>Visibility is table stakes. The paid wedge is rescue: rank the agent most likely to be stalled, explain why, then hand the Supervisor the recovery packet.</p>
+      <div class="wedge-label"><i class="icon" data-lucide="shield-check"></i><span>Hook-enforced updates</span></div>
+      <h2>Watch what your agents do. Catch them if they go dark.</h2>
+      <p>The hooks make progress reporting structural. Agents emit plain-English pulses at spawn, during work, and before stop, then the dashboard turns those pulses into live status, costs, and rescue actions.</p>
       <div class="proof-row">
-        <span class="proof-pill"><i class="icon" data-lucide="terminal"></i>Codex + Claude</span>
-        <span class="proof-pill"><i class="icon" data-lucide="monitor-cog"></i>Windows-local first</span>
-        <span class="proof-pill"><i class="icon" data-lucide="shield-check"></i>No fake kill switch</span>
+        <span class="proof-pill"><i class="icon" data-lucide="workflow"></i>Spawn gate</span>
+        <span class="proof-pill"><i class="icon" data-lucide="radio"></i>Ambient pulses</span>
+        <span class="proof-pill"><i class="icon" data-lucide="receipt-text"></i>Token + cost rollups</span>
       </div>
     </div>
 
     <div class="rescue-card">
       <div class="panel-head">
-        <h2 class="panel-title">Rescue Queue</h2>
-        <div class="section-label" id="rescue-count">0 urgent</div>
+        <h2 class="panel-title">Hook Layer</h2>
+        <div class="section-label">5 checks</div>
       </div>
-      <div id="rescue-queue" class="rescue-list"><div class="empty">Waiting for agent signals.</div></div>
+      <div class="hook-list">
+        <div class="hook-row"><span>Spawn isolation</span><strong>worktree required</strong></div>
+        <div class="hook-row"><span>Pulse contract</span><strong>brief must commit</strong></div>
+        <div class="hook-row"><span>Stop enforcement</span><strong>narrative pulse required</strong></div>
+        <div class="hook-row"><span>Main thread pulses</span><strong>edits/tests/builds emit</strong></div>
+        <div class="hook-row"><span>Parallel nudge</span><strong>spawn safe work</strong></div>
+      </div>
     </div>
 
     <div class="loop-card">
-      <div class="section-label">Stall-to-recovery loop</div>
+      <div class="section-label">Supervisor Agent loop</div>
       <div class="loop-steps">
         <div class="loop-step"><span class="step-index">1</span><div class="loop-copy"><strong>Detect silence</strong><span>Spot the agent that stopped producing useful output.</span></div></div>
-        <div class="loop-step"><span class="step-index">2</span><div class="loop-copy"><strong>Read the last moves</strong><span>Show the goal, fresh events, and likely failure mode.</span></div></div>
-        <div class="loop-step"><span class="step-index">3</span><div class="loop-copy"><strong>Send Supervisor</strong><span>Write a recovery request back into the agent pulse stream.</span></div></div>
+        <div class="loop-step"><span class="step-index">2</span><div class="loop-copy"><strong>Read tokens and cost</strong><span>See what each agent is spending while it works.</span></div></div>
+        <div class="loop-step"><span class="step-index">3</span><div class="loop-copy"><strong>Send Supervisor Agent</strong><span>Write a recovery request back into the pulse stream.</span></div></div>
       </div>
     </div>
   </section>
@@ -1062,10 +1152,11 @@
         <div class="progress-fill" id="progress-fill"></div>
       </div>
     </div>
-    <div class="metric"><div class="metric-label">Rescue queue</div><div class="metric-value" id="metric-attention">0</div></div>
+    <div class="metric danger"><div class="metric-label">Needs Supervisor</div><div class="metric-value" id="metric-attention">0</div></div>
     <div class="metric"><div class="metric-label">Working</div><div class="metric-value" id="metric-working">0</div></div>
     <div class="metric"><div class="metric-label">Commits</div><div class="metric-value" id="metric-commits">0</div></div>
-    <div class="metric"><div class="metric-label">Tests</div><div class="metric-value" id="metric-tests">--</div></div>
+    <div class="metric"><div class="metric-label">Cost</div><div class="metric-value" id="metric-cost">--</div></div>
+    <div class="metric"><div class="metric-label">Tokens</div><div class="metric-value" id="metric-tokens">--</div></div>
   </section>
 
   <section class="controls" aria-label="Dashboard filters">
@@ -1085,7 +1176,7 @@
     <aside class="right-rail">
       <section class="inspector" aria-label="Agent detail">
         <div class="panel-head">
-          <h2 class="panel-title">Rescue Inspector</h2>
+          <h2 class="panel-title">Supervisor Agent</h2>
           <div class="section-label" id="detail-source">No selection</div>
         </div>
         <div id="inspector-body" class="inspector-empty">Select an agent to inspect its goal, timeline, and recovery actions.</div>
@@ -1113,14 +1204,20 @@
 <div class="toast" id="toast"></div>
 
 <footer class="portfolio">
-  <div class="signature">
-    <strong>Russell Miller</strong>
-    <span>AI systems builder - multi-agent tooling</span>
+  <div class="portfolio-note">
+    <strong>Hook-enforced agent updates</strong>
+    <span>Live status, rescue, and cost visibility for parallel coding agents.</span>
   </div>
-  <nav class="contact-links" aria-label="Portfolio contact">
-    <a href="mailto:rmiller@zavient.com"><i class="icon" data-lucide="mail"></i><span>rmiller@zavient.com</span></a>
-    <a href="https://www.linkedin.com/in/russellmiller" target="_blank" rel="noopener"><i class="icon" data-lucide="linkedin"></i><span>LinkedIn</span></a>
-  </nav>
+  <section class="portfolio-card" aria-label="Built by Russell Miller">
+    <div class="signature">
+      <strong>Russell Miller</strong>
+      <span>AI systems builder - multi-agent tooling</span>
+    </div>
+    <nav class="contact-links" aria-label="Portfolio contact">
+      <a href="mailto:rmiller@zavient.com"><i class="icon" data-lucide="mail"></i><span>rmiller@zavient.com</span></a>
+      <a href="https://www.linkedin.com/in/russellmiller" target="_blank" rel="noopener"><i class="icon" data-lucide="linkedin"></i><span>LinkedIn</span></a>
+    </nav>
+  </section>
 </footer>
 
 <script>
@@ -1137,7 +1234,7 @@
   const requestedTheme = urlParams.get('theme');
   const useDemo = urlParams.has('demo');
   const storedTheme = localStorage.getItem('agent-dashboard-theme');
-  const initialTheme = requestedTheme || storedTheme;
+  const initialTheme = requestedTheme || storedTheme || 'light';
   if (initialTheme === 'light' || initialTheme === 'dark') {
     document.documentElement.dataset.theme = initialTheme;
   }
@@ -1251,6 +1348,8 @@
       testsBaseline: 3111,
       testsCurrent: 3172,
       testsGained: 61,
+      tokensTotal: 68420,
+      costUsdTotal: 2.17,
       sources: [
         { key: 'codex', label: 'Codex', file: 'C:\\Users\\rmill\\.codex\\state\\agent-pulse.log', exists: true },
         { key: 'claude', label: 'Claude', file: 'C:\\Users\\rmill\\.claude\\state\\agent-pulse.log', exists: true },
@@ -1263,6 +1362,8 @@
           sourceLabel: 'Codex',
           state: 'dormant',
           goal: 'Remove stale auth shim and prove login still works before merge.',
+          tokens: 18420,
+          costUsd: 0.62,
           lastEmitMs: now - 48 * 60 * 1000,
           events: [
             demoEvent(now, 48, 'normal', 'Stopped after replacing the stale shim. 3 agents are working while this one needs rescue.'),
@@ -1275,6 +1376,8 @@
           sourceLabel: 'Claude',
           state: 'working',
           goal: 'Add regression coverage for malformed config files.',
+          tokens: 22600,
+          costUsd: 0.71,
           lastEmitMs: now - 50 * 1000,
           events: [
             { ms: now - 50 * 1000, kind: 'normal', text: 'Running the malformed config cases against Windows paths.' },
@@ -1287,6 +1390,8 @@
           sourceLabel: 'Local',
           state: 'working',
           goal: 'Update README screenshots and explain the rescue workflow.',
+          tokens: 9700,
+          costUsd: 0.28,
           lastEmitMs: now - 65 * 1000,
           events: [
             { ms: now - 65 * 1000, kind: 'normal', text: 'Updating the README copy and checking the preview image.' },
@@ -1299,6 +1404,8 @@
           sourceLabel: 'Codex',
           state: 'working',
           goal: 'Verify the dashboard still works on Windows before pushing main.',
+          tokens: 17700,
+          costUsd: 0.56,
           lastEmitMs: now - 25 * 1000,
           events: [
             { ms: now - 25 * 1000, kind: 'normal', text: 'Running the final smoke check against the local dashboard.' },
@@ -1332,7 +1439,7 @@
       body: JSON.stringify({ task: agent.task, sourceKey: agent.sourceKey }),
     }).then((response) => response.json()).then((result) => {
       if (!result.ok) throw new Error(result.error || 'Request failed');
-      showToast('Supervisor asked', 'A plain-English inspection request was written to the ' + result.sourceLabel + ' pulse log.');
+      showToast('Supervisor Agent asked', 'A plain-English inspection request was written to the ' + result.sourceLabel + ' pulse log.');
     }).catch((error) => {
       showToast('Supervisor request failed', error.message);
       if (button) {
@@ -1351,6 +1458,18 @@
     });
   }
 
+  function formatTokens(value) {
+    if (!value) return '--';
+    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+    if (value >= 1000) return Math.round(value / 100) / 10 + 'k';
+    return String(value);
+  }
+
+  function formatCost(value) {
+    if (!value) return '$0.00';
+    return '$' + Number(value).toFixed(2);
+  }
+
   function renderOverview(state) {
     const agents = state.agents || [];
     const total = agents.length;
@@ -1367,9 +1486,8 @@
     $('metric-attention').textContent = attention;
     $('metric-working').textContent = working;
     $('metric-commits').textContent = state.commitsAhead || 0;
-    $('metric-tests').innerHTML = state.testsGained === null || state.testsGained === undefined
-      ? '--'
-      : escapeHtml(state.testsCurrent) + '<span class="metric-delta">+' + escapeHtml(state.testsGained) + '</span>';
+    $('metric-cost').textContent = formatCost(state.costUsdTotal || 0);
+    $('metric-tokens').textContent = formatTokens(state.tokensTotal || 0);
 
     let copy = 'Waiting for the first agent pulse.';
     if (total && attention) {
@@ -1510,16 +1628,19 @@
       const triage = triageOf(agent);
       const cardClass = triage === 'attention' ? 'problem' : agent.state;
       const recent = (agent.events || []).slice(0, 3).map((event) => renderActivity(event, state.now)).join('');
+      const usage = '<div class="usage-row"><span class="badge">Tokens ' + escapeHtml(formatTokens(agent.tokens || 0)) + '</span><span class="badge">Cost ' + escapeHtml(formatCost(agent.costUsd || 0)) + '</span></div>';
       return '<button type="button" class="agent-card ' + cardClass + selected + '" data-agent="' + escapeHtml(key) + '">'
         + '<div class="agent-head">'
         + '<div><div class="agent-name">' + escapeHtml(agent.task) + '</div>'
         + '<div class="badge-row">'
         + '<span class="badge ' + stateBadgeClass(agent) + '"><span class="status-dot status-' + escapeHtml(agent.state) + '"></span>' + stateLabel(agent) + '</span>'
         + '<span class="badge">' + escapeHtml(agent.sourceLabel || 'Agent') + '</span>'
+        + (triage === 'attention' ? '<span class="badge rescue">Needs Supervisor</span>' : '')
         + '</div></div>'
         + '<div class="time-chip">' + relTime(agent.lastEmitMs, state.now) + '</div>'
         + '</div>'
         + '<div class="goal-box"><div class="card-label">Goal</div><div class="goal-text">' + escapeHtml(agent.goal) + '</div></div>'
+        + usage
         + '<div class="activity-list">' + recent + '</div>'
         + '<div class="card-foot">' + renderSpark(agent)
         + (triage === 'attention'
@@ -1568,11 +1689,13 @@
       + '<span class="badge ' + stateBadgeClass(agent) + '">' + stateLabel(agent) + '</span>'
       + '<span class="badge">' + escapeHtml(agent.sourceLabel || 'Agent') + '</span>'
       + '<span class="badge">' + relTime(agent.lastEmitMs, state.now) + '</span>'
+      + (triageOf(agent) === 'attention' ? '<span class="badge rescue">Needs Supervisor</span>' : '')
       + '</div>'
       + '<div class="goal-box"><div class="card-label">Current goal</div><div class="goal-text">' + escapeHtml(agent.goal) + '</div></div>'
+      + '<div class="usage-row"><span class="badge">Tokens ' + escapeHtml(formatTokens(agent.tokens || 0)) + '</span><span class="badge">Cost ' + escapeHtml(formatCost(agent.costUsd || 0)) + '</span></div>'
       + '<div class="diagnosis ' + diag.tone + '"><strong>' + escapeHtml(diag.title) + '</strong><span>' + escapeHtml(diag.body) + '</span></div>'
       + '<div class="detail-actions">'
-      + '<button type="button" class="action-btn primary" id="detail-supervisor" data-reset-label="Have Supervisor Inspect"><i class="icon" data-lucide="scan-search"></i><span>Have Supervisor Inspect</span></button>'
+      + '<button type="button" class="action-btn primary" id="detail-supervisor" data-reset-label="Ask Supervisor Agent"><i class="icon" data-lucide="scan-search"></i><span>Ask Supervisor Agent</span></button>'
       + '<div class="secondary-actions">'
       + '<button type="button" class="action-btn secondary" data-soft-action="Transcript paths are not in the pulse log yet. Add transcript metadata to enable this."><i class="icon" data-lucide="file-search"></i><span>Transcript</span></button>'
       + '<button type="button" class="action-btn secondary" data-soft-action="Resume needs a runner integration. This dashboard already tells you who needs it."><i class="icon" data-lucide="play"></i><span>Resume</span></button>'
@@ -1623,7 +1746,6 @@
     renderOverview(state);
     renderTriage(state);
     renderFilters(state);
-    renderRescueQueue(state);
     renderInspector(state);
     renderAgents(state);
     renderSources(state);
@@ -1635,7 +1757,7 @@
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
     localStorage.setItem('agent-dashboard-theme', next);
-    $('theme-toggle').querySelector('span').textContent = next === 'dark' ? 'Light' : 'Nixie';
+    $('theme-toggle').querySelector('span').textContent = next === 'dark' ? 'Light' : 'Night';
   });
 
   $('global-supervisor').addEventListener('click', (event) => {
@@ -1659,7 +1781,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    $('theme-toggle').querySelector('span').textContent = document.documentElement.dataset.theme === 'dark' ? 'Light' : 'Nixie';
+    $('theme-toggle').querySelector('span').textContent = document.documentElement.dataset.theme === 'dark' ? 'Light' : 'Night';
     renderIcons();
     if (useDemo) {
       render(demoState());

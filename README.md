@@ -1,49 +1,65 @@
-# Agent Rescue Board
+# Agent Dashboard
 
-A local rescue board for parallel Codex and Claude agents.
+A hook-enforced live dashboard for parallel Codex and Claude agents.
 
-When you spawn multiple agents in parallel, the expensive failure mode is not "I lack charts." It is "I lost track of which agent is stuck." Agent Rescue Board finds the agent most likely to be stalled, explains why, and gives you a Supervisor action to inspect it before it burns context, money, or momentum.
+Watch what your agents do. Catch them if they go dark.
 
-![Agent Rescue Board preview](./preview.png)
+Most agent dashboards can only show what agents happen to log. Agent Dashboard
+ships the missing half: hooks that make agents emit plain-English updates in
+the first place.
+
+Those enforced updates power the useful parts: live agent status, stalled-agent
+rescue, and token/cost visibility per agent.
+
+![Agent Dashboard preview](./preview-active-agents.png)
 
 ## What you get
 
-- **Rescue-first web board at `localhost:9999`** — rescue queue, run health, agent cards, and detail inspector
-- **Rescue Queue** — ranks agents that are silent, dormant, or showing problem signals
-- **Rescue Inspector** — click an agent to see its goal, timeline, diagnosis, and recovery actions
-- **Supervisor inspect button** — writes a plain-English check request back to the right pulse log
-- **Codex + Claude source detection** — watches Windows-friendly `.codex` and `.claude` state paths automatically
-- **Light + nixie dark themes** — use the toggle or `?theme=light` / `?theme=dark` for screenshots
-- **Static screenshot mode** — add `?static=1` so portfolio captures do not wait on the live event stream
-- **Recent commits sidebar** — live `git log` of the active branch
-- **Live SSE feed plus first-paint hydration** — events stream live, and screenshots render populated immediately
-- **Terminal watcher** as a fallback — `pulse-watch.cjs` does the same thing in a terminal window for headless use
-- **4 hooks** that make agent control structural rather than discipline-based:
-  - **`worktree-on-agent-spawn`** — refuses to spawn an agent without `isolation: "worktree"` (forces parallel-safe isolation)
-  - **`pulse-on-agent-activity`** — gates spawns on a pulse-contract reference + auto-emits a baseline pulse + throttles ambient updates to your replies
-  - **`pulse-enforcer-subagent`** — refuses to let a subagent stop without emitting at least one narrative pulse
-  - **`parallel-when-possible`** — if 1 agent is in flight while 2+ parallel-safe phases sit unstarted, nudges the orchestrator to spawn the rest
+- **Hook-enforced web board at `localhost:9999`** - live agent cards, hook health, run health, and detail inspector.
+- **Five hook checks** - spawn isolation, pulse contract, stop enforcement, main-thread pulses, and parallel-work nudges.
+- **Supervisor Agent button** - writes a plain-English inspection request back to the right pulse log.
+- **Tokens + cost per agent** - extracts usage from agent pulses and rolls it up on the dashboard.
+- **Rescue queue** - ranks agents that are silent, dormant, or showing problem signals.
+- **Codex + Claude source detection** - watches Windows-friendly `.codex` and `.claude` state paths automatically.
+- **Light default + nixie night mode** - use the toggle or `?theme=light` / `?theme=dark` for screenshots.
+- **Windows desktop shortcut** - run the one-click installer or `scripts/create-desktop-shortcut.ps1`.
+- **Agent setup skill** - `skills/agent-dashboard-setup/SKILL.md` tells Claude or Codex how to install and verify it.
+- **Static screenshot mode** - add `?static=1` so portfolio captures do not wait on the live event stream.
+- **Recent commits sidebar** - live `git log` of the active branch.
+- **Live SSE feed plus first-paint hydration** - events stream live, and screenshots render populated immediately.
+- **Terminal watcher** as a fallback - `pulse-watch.cjs` does the same thing in a terminal window for headless use.
 
 ## Why this exists
 
 Parallel coding agents are powerful, but they are easy to lose track of.
 
-One agent may be writing tests, another may be fixing docs, and another may
-have gone quiet after touching risky code. Agent Rescue Board gives you one
-place to see the live work and spot the run that needs help.
+The usual failure mode is structural: agents only report progress when they
+remember to. This project makes reporting a contract. Hooks block or nudge the
+workflow until agents leave useful progress pulses behind.
 
 The goal is simple:
 
+- Make agent updates mandatory.
 - Keep working agents visible.
 - Put stalled agents at the top.
-- Preserve the goal and latest activity.
-- Send a Supervisor inspection request without hunting through logs.
+- Show tokens and cost by agent.
+- Send a Supervisor Agent inspection request without hunting through logs.
+
+## What the hooks enforce
+
+| Hook | Event | What it enforces |
+| --- | --- | --- |
+| `worktree-on-agent-spawn.mjs` | PreToolUse on Agent | Blocks agent spawns without worktree isolation unless explicitly opted out. |
+| `pulse-on-agent-activity.mjs` | PreToolUse on Agent | Blocks agent briefs that do not reference the pulse contract, then emits the baseline goal pulse. |
+| `pulse-enforcer-subagent.mjs` | Stop | Refuses silent subagent stops unless at least one narrative pulse landed. |
+| `main-thread-pulse.mjs` | PostToolUse on edits/tests/builds | Emits main-thread progress after commits, tests, builds, and edits. |
+| `parallel-when-possible.mjs` | Stop | Nudges the orchestrator to spawn more agents when parallel-safe work is waiting. |
 
 ## How it works (30 seconds)
 
 1. Agents append plain-English progress events to a shared log file: `~/.claude/state/agent-pulse.log`. One line per event, format:
    ```
-   [2026-05-13T15:34:08Z] [Phase 3] Agent: Wrote the failing test — first 3 calls ask the user, 4th auto-runs. Implementing now.
+   [2026-05-13T15:34:08Z] [Phase 3] Agent: Wrote the failing test. Tokens: 12,480. Cost: $0.42.
    ```
 2. The dashboard server tails that file and pushes events to your browser via SSE.
 3. The hooks make agents actually write pulses (refuse spawn or stop otherwise).
@@ -51,20 +67,36 @@ The goal is simple:
 
 ## Quick start
 
-### Install (one minute)
+### Install on Windows
+
+Double-click:
+
+```text
+Install Agent Dashboard.cmd
+```
+
+Or run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\Install Agent Dashboard.ps1"
+```
+
+That installs the hooks and creates a desktop shortcut named `Agent Dashboard`.
+
+### Install on macOS / Linux
 
 ```bash
 git clone <wherever you got this> agent-dashboard
 cd agent-dashboard
-./scripts/install.sh         # macOS / Linux
-# or
-./scripts/install.ps1        # Windows PowerShell
+./scripts/install.sh
 ```
 
 The installer:
-1. Copies the 4 hook files into `~/.claude/hooks/`
+1. Copies the 5 hook files into `~/.claude/hooks/`
 2. Patches `~/.claude/settings.json` to wire them up (with a `.bak` backup of the original)
 3. Creates `~/.claude/state/agent-pulse.log` if it doesn't exist
+
+On Windows, the one-click installer also creates the desktop shortcut.
 
 ### Run the dashboard
 
@@ -99,6 +131,17 @@ In a fresh Claude Code session, paste the contents of `SETUP-PROMPT.md` as your 
 
 Then ask Claude to do anything that involves background agents. The hooks enforce the rest.
 
+### Use the setup skill
+
+The repo includes `skills/agent-dashboard-setup/SKILL.md`.
+
+Give that skill to Claude or Codex when you want the agent to:
+- Install the hooks
+- Create the Windows desktop shortcut
+- Launch the dashboard
+- Verify the demo preview
+- Confirm tokens, costs, rescue, and footer contact details render
+
 ### Use it with Codex, Claude Cowork, or other agent tools
 
 The bundled hook layer is Claude Code-specific today, but the dashboard works with **any** agent system that can append to an agent pulse log in the expected format. For Codex or Cowork:
@@ -130,42 +173,81 @@ Full rules + examples in `AGENT-PULSE-CONTRACT.md`.
 
 ```
 agent-dashboard/
-├── README.md                       ← you are here
-├── SETUP-PROMPT.md                 ← paste into Claude Code to wire it up
-├── AGENT-PULSE-CONTRACT.md         ← format spec for agents
-├── LICENSE.md                      ← Fair Source: free personal, paid commercial
-├── dashboard/
-│   ├── server.cjs                  ← Node HTTP + SSE server, port 9999, zero deps
-│   └── index.html                  ← single-file UI, Lucide icons, dark mode
-├── hooks/
-│   ├── worktree-on-agent-spawn.mjs ← refuses unisolated agent spawns
-│   ├── pulse-on-agent-activity.mjs ← gates spawn + ambient pulse emission
-│   ├── pulse-enforcer-subagent.mjs ← refuses silent agent stops
-│   └── parallel-when-possible.mjs  ← nudges toward parallel agent dispatch
-├── scripts/
-    ├── install.sh                  ← macOS / Linux installer
-    ├── install.ps1                 ← Windows PowerShell installer
-    └── pulse-watch.cjs             ← terminal-based alternative to the web UI
+|-- README.md
+|-- Install Agent Dashboard.cmd      # double-click Windows installer
+|-- Install Agent Dashboard.ps1      # one-click PowerShell installer
+|-- SETUP-PROMPT.md                  # paste into Claude Code to wire it up
+|-- AGENT-PULSE-CONTRACT.md          # pulse format spec for agents
+|-- LICENSE.md                       # Fair Source: free personal, paid commercial
+|-- dashboard/
+|   |-- server.cjs                   # Node HTTP + SSE server, port 9999, zero deps
+|   `-- index.html                   # single-file UI, Lucide icons, light/night mode
+|-- hooks/
+|   |-- worktree-on-agent-spawn.mjs  # refuses unisolated agent spawns
+|   |-- pulse-on-agent-activity.mjs  # gates spawn + ambient pulse emission
+|   |-- pulse-enforcer-subagent.mjs  # refuses silent agent stops
+|   |-- main-thread-pulse.mjs        # emits progress after edits, tests, builds
+|   `-- parallel-when-possible.mjs   # nudges toward parallel agent dispatch
+|-- scripts/
+|   |-- install.sh                   # macOS / Linux installer
+|   |-- install.ps1                  # Windows PowerShell installer
+|   |-- create-desktop-shortcut.ps1  # Windows desktop shortcut creator
+|   |-- launch-agent-dashboard.ps1   # Windows launcher used by the shortcut
+|   `-- pulse-watch.cjs              # terminal alternative to the web UI
+`-- skills/
+    `-- agent-dashboard-setup/
+        `-- SKILL.md                 # setup skill for Claude/Codex
 ```
 
 ## Licensing & pricing
 
-**Free for personal use.** Indie projects, learning, hobby work, your own toolchain — go nuts.
+**Free for personal use.** Indie projects, learning, hobby work, your own toolchain - go nuts.
 
 **Commercial use requires a license.** If you or your company uses this dashboard for work that generates revenue, you need a commercial license:
 
-- **Solo / freelance** (you work for yourself, < $1M ARR): **free** — same as personal
-- **Team** (1-50 seats, employer-paid): **$8 per seat per month** — covers small teams that want to coordinate Claude Code work across multiple agents
+- **Solo / freelance** (you work for yourself, < $1M ARR): **free** - same as personal
+- **Team** (1-50 seats, employer-paid): **$8 per seat per month** - covers small teams that want to coordinate Claude Code work across multiple agents
 - **Enterprise** (50+ seats, audit logs, SSO, on-prem): **contact for pricing**
 
 Email **rmiller@zavient.com** to license commercial use.
 
-Why this model: this dashboard is the kind of thing a solo dev would gladly build for themselves, but engineering teams running multiple Claude agents in coordinated workflows get real production-grade value from it — they can afford to pay. Fair Source license keeps the personal-use door wide open while making the commercial track honest.
+Why this model: this dashboard is the kind of thing a solo dev would gladly build for themselves, but engineering teams running multiple Claude agents in coordinated workflows get real production-grade value from it. Fair Source keeps the personal-use door wide open while making the commercial track honest.
+
+## Usage and telemetry
+
+Downloadable tools cannot prove perfect usage by themselves. The practical model:
+
+1. **Track purchases first.** Sell a license and monitor paid seats.
+2. **Track release downloads.** GitHub release assets give a rough download count.
+3. **Use license activation for paid seats.** Ask for a key during install, validate it periodically, and allow offline grace.
+4. **Disclose telemetry plainly.** If the app phones home, say exactly what it sends.
+5. **Do not block local use casually.** This is a developer tool; trust matters.
+
+The first paid version should sell the license, support, and team workflow. Metered usage can wait until there is real demand.
+
+What is safe to send:
+- License id or hashed license key
+- App version
+- OS
+- Anonymous install id
+- Event type: install, launch, validate, deactivate
+
+What should never leave the machine:
+- Prompt text
+- Agent messages
+- Pulse logs
+- Repo paths
+- File names
+- Source code
+
+Commercial builds should say this plainly:
+
+> Commercial builds use license activation to count seats. No agent logs or source-code data leave your machine.
 
 See `LICENSE.md` for the formal license text.
 
 ## Built by
 
-**Russell Miller** — [rmiller@zavient.com](mailto:rmiller@zavient.com) · [LinkedIn](https://www.linkedin.com/in/russellmiller) · [GitHub](https://github.com/russellmiller3)
+**Russell Miller** - [rmiller@zavient.com](mailto:rmiller@zavient.com) - [LinkedIn](https://www.linkedin.com/in/russellmiller) - [GitHub](https://github.com/russellmiller3)
 
 If this saves you time, tell people. Pull requests welcome.

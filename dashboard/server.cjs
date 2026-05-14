@@ -134,6 +134,30 @@ function parseEvents() {
 const COMPLETION_RE = /\b(all (\d+ )?(remaining )?cycles shipped|all (\d+ )?phases shipped|phase \w+ complete|final test count)/i;
 const MILESTONE_RE = /\b(shipped|GREEN|green\b|landed|committing|cycle \d+(\.\d+)? (green|done|complete))/i;
 const PROBLEM_RE = /\b(PROBLEM|failure|failed|crash|stalled|blocked|stuck|conflict|wiped|clobbered|API Error|no transcript growth)/i;
+const TOKEN_RE = /\b(?:tokens?|tok)\b[^0-9]{0,16}([0-9][0-9,]*)|([0-9][0-9,]*)\s*(?:tokens?|tok)\b/gi;
+const COST_RE = /\b(?:cost|spent|usd)\b[^$0-9]{0,16}\$?\s*([0-9]+(?:\.[0-9]{1,4})?)|\$\s*([0-9]+(?:\.[0-9]{1,4})?)\s*(?:cost|spent|usd)?/gi;
+
+function parseUsage(text) {
+  let tokens = null;
+  let costUsd = null;
+  let match;
+
+  TOKEN_RE.lastIndex = 0;
+  while ((match = TOKEN_RE.exec(text)) !== null) {
+    const raw = match[1] || match[2];
+    const value = Number(String(raw).replace(/,/g, ''));
+    if (Number.isFinite(value)) tokens = Math.max(tokens || 0, value);
+  }
+
+  COST_RE.lastIndex = 0;
+  while ((match = COST_RE.exec(text)) !== null) {
+    const raw = match[1] || match[2];
+    const value = Number(raw);
+    if (Number.isFinite(value)) costUsd = Math.max(costUsd || 0, value);
+  }
+
+  return { tokens, costUsd };
+}
 
 function buildState() {
   const sources = pulseSources();
@@ -174,12 +198,22 @@ function buildState() {
       }
     }
 
+    let tokens = null;
+    let costUsd = null;
+    for (const event of entry.events) {
+      const usage = parseUsage(event.text);
+      if (usage.tokens !== null) tokens = Math.max(tokens || 0, usage.tokens);
+      if (usage.costUsd !== null) costUsd = Math.max(costUsd || 0, usage.costUsd);
+    }
+
     agents.push({
       task: entry.task,
       sourceKey: entry.sourceKey,
       sourceLabel: entry.sourceLabel,
       state,
       goal,
+      tokens,
+      costUsd,
       lastEmitMs: last.ms,
       lastEmitText: last.text,
       events: entry.events.slice(0, 10).map((event) => ({
@@ -190,6 +224,8 @@ function buildState() {
     });
   }
   agents.sort((a, b) => b.lastEmitMs - a.lastEmitMs);
+  const tokensTotal = agents.reduce((sum, agent) => sum + (agent.tokens || 0), 0);
+  const costUsdTotal = Number(agents.reduce((sum, agent) => sum + (agent.costUsd || 0), 0).toFixed(4));
 
   const branch = safeGit(['rev-parse', '--abbrev-ref', 'HEAD']) || 'unknown';
   const headLog = safeGit(['log', '-1', '--pretty=format:%h %ar %s']);
@@ -240,6 +276,8 @@ function buildState() {
     testsBaseline,
     testsCurrent,
     testsGained,
+    tokensTotal,
+    costUsdTotal,
     now,
     repo: TARGET_REPO,
     sources: sources.map((source) => ({
