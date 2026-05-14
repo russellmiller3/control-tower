@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Agent Dashboard — macOS/Linux installer.
+# Control Tower — macOS/Linux installer.
 # Copies hooks into ~/.claude/hooks/, patches ~/.claude/settings.json
 # (with a timestamped backup), and creates the pulse log directory.
 set -euo pipefail
@@ -10,7 +10,7 @@ HOOKS_DIR="${CLAUDE_DIR}/hooks"
 STATE_DIR="${CLAUDE_DIR}/state"
 SETTINGS="${CLAUDE_DIR}/settings.json"
 
-echo "Agent Dashboard installer"
+echo "Control Tower installer"
 echo "  repo:     ${REPO_DIR}"
 echo "  target:   ${CLAUDE_DIR}"
 echo ""

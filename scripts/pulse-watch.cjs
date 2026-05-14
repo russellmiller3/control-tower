@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * pulse-watch — live agent dashboard, grouped per agent.
+ * pulse-watch — live Control Tower terminal view, grouped per agent.
  *
  * Each agent gets its own section showing:
  *   - Task name + state (working / silent / dormant / completed)

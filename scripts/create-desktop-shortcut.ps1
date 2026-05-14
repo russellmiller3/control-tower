@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 
 $repo = Split-Path -Parent $PSScriptRoot
 $server = Join-Path $repo "dashboard\server.cjs"
-$launcher = Join-Path $repo "scripts\launch-agent-dashboard.ps1"
+$launcher = Join-Path $repo "scripts\launch-control-tower.ps1"
 $icon = Join-Path $repo "dashboard\assets\control-tower.ico"
 $desktop = [Environment]::GetFolderPath("Desktop")
 $taskbar = Join-Path $env:APPDATA "Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar"

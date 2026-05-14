@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Agent dashboard server - port 9999 by default.
+ * Control Tower server - port 9999 by default.
  *
  * Routes:
  *   GET  /              -> index.html
@@ -20,7 +20,7 @@ const ROOT = path.resolve(__dirname);
 const APP_ROOT = path.resolve(ROOT, '..');
 const ASSET_ROOT = path.join(ROOT, 'assets');
 const HOME = os.homedir();
-const PORT = Number(process.env.AGENT_DASHBOARD_PORT || 9999);
+const PORT = Number(process.env.CONTROL_TOWER_PORT || process.env.AGENT_DASHBOARD_PORT || 9999);
 const STALL_MS = 3 * 60 * 1000;
 const DORMANT_MS = 30 * 60 * 1000;
 
@@ -46,6 +46,7 @@ function gitRoot(candidate) {
 
 function detectRepo() {
   const candidates = [
+    process.env.CONTROL_TOWER_REPO,
     process.env.AGENT_DASHBOARD_REPO,
     process.cwd(),
     path.resolve(ROOT, '..', '..', '..', 'clear'),
@@ -471,7 +472,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Agent dashboard: http://127.0.0.1:${PORT}`);
+  console.log(`Control Tower: http://127.0.0.1:${PORT}`);
   console.log(`Watching repo: ${TARGET_REPO}`);
   console.log(`Pulse logs: ${pulseSources().map((source) => `${source.label}=${source.file}`).join(' | ')}`);
   console.log('Ctrl+C to stop.');

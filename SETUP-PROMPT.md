@@ -4,7 +4,7 @@ Paste the entire contents of this file as your first message to a fresh Claude C
 
 ---
 
-I just installed the Agent Dashboard. From this point forward, every background agent you spawn must follow these rules:
+I just installed Control Tower. From this point forward, every background agent you spawn must follow these rules:
 
 ## 1. Worktree isolation
 

@@ -42,7 +42,7 @@ function waitForServer(child, port) {
 }
 
 test('discovers a Windows Codex pulse log and writes Supervisor checks back to it', async (t) => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-dashboard-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'control-tower-'));
   const home = path.join(tmp, 'home');
   const codexState = path.join(home, '.codex', 'state');
   fs.mkdirSync(codexState, { recursive: true });
@@ -65,8 +65,8 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
     cwd: ROOT,
     env: {
       ...process.env,
-      AGENT_DASHBOARD_PORT: String(port),
-      AGENT_DASHBOARD_REPO: ROOT,
+      CONTROL_TOWER_PORT: String(port),
+      CONTROL_TOWER_REPO: ROOT,
       HOME: home,
       USERPROFILE: home,
     },
@@ -120,6 +120,8 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   assert.match(themedHtml, /Cost/);
   assert.match(themedHtml, /radar-scope/);
   assert.match(themedHtml, /control-tower-32\.png/);
+  assert.match(themedHtml, /control-tower-theme/);
+  assert.match(themedHtml, /agent-dashboard-theme/);
   assert.match(themedHtml, /portfolio-card/);
   assert.match(themedHtml, /Russell Miller/);
   assert.match(themedHtml, /rmiller@zavient\.com/);
@@ -138,27 +140,34 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
 
 test('ships a Windows desktop shortcut launcher script', () => {
   const shortcutScript = fs.readFileSync(path.join(ROOT, 'scripts', 'create-desktop-shortcut.ps1'), 'utf8');
-  const launcherScript = fs.readFileSync(path.join(ROOT, 'scripts', 'launch-agent-dashboard.ps1'), 'utf8');
+  const launcherScript = fs.readFileSync(path.join(ROOT, 'scripts', 'launch-control-tower.ps1'), 'utf8');
   assert.match(shortcutScript, /Control Tower/);
   assert.match(shortcutScript, /dashboard\\server\.cjs/);
   assert.match(shortcutScript, /control-tower\.ico/);
   assert.match(shortcutScript, /TaskBar/);
   assert.match(shortcutScript, /WScript\.Shell/);
+  assert.match(launcherScript, /CONTROL_TOWER_PORT/);
+  assert.match(launcherScript, /CONTROL_TOWER_REPO/);
   assert.match(launcherScript, /--app=http:\/\/127\.0\.0\.1:\$Port\/\?theme=light/);
   assert.match(launcherScript, /msedge\.exe|chrome\.exe/);
 });
 
 test('ships a setup skill and one-click Windows installer', () => {
-  const skill = fs.readFileSync(path.join(ROOT, 'skills', 'agent-dashboard-setup', 'SKILL.md'), 'utf8');
+  const skill = fs.readFileSync(path.join(ROOT, 'skills', 'control-tower-setup', 'SKILL.md'), 'utf8');
   assert.match(skill, /Control Tower Setup/);
   assert.match(skill, /scripts\/install.ps1/);
   assert.match(skill, /create-desktop-shortcut.ps1/);
   assert.match(skill, /taskbar/i);
+  assert.match(skill, /Install Control Tower\.ps1/);
+  assert.match(skill, /Install Control Tower\.cmd/);
 
-  const oneClick = fs.readFileSync(path.join(ROOT, 'Install Agent Dashboard.ps1'), 'utf8');
+  const oneClick = fs.readFileSync(path.join(ROOT, 'Install Control Tower.ps1'), 'utf8');
   assert.match(oneClick, /scripts\\install\.ps1/);
   assert.match(oneClick, /create-desktop-shortcut\.ps1/);
   assert.match(oneClick, /Control Tower/);
+
+  const wrapper = fs.readFileSync(path.join(ROOT, 'Install Control Tower.cmd'), 'utf8');
+  assert.match(wrapper, /Install Control Tower\.ps1/);
 
   const mainThreadHook = fs.readFileSync(path.join(ROOT, 'hooks', 'main-thread-pulse.mjs'), 'utf8');
   assert.match(mainThreadHook, /PostToolUse/);

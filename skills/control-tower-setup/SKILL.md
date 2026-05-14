@@ -17,13 +17,13 @@ dashboard setup.
 From the repo root, run:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\Install Agent Dashboard.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\Install Control Tower.ps1"
 ```
 
 For a double-clickable install, use:
 
 ```powershell
-.\Install Agent Dashboard.cmd
+.\Install Control Tower.cmd
 ```
 
 That wrapper runs:
@@ -38,12 +38,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\create-desktop-sh
 Use this when the user wants to see each step:
 
 Portable file names: `scripts/install.ps1`, `scripts/create-desktop-shortcut.ps1`,
-and `scripts/launch-agent-dashboard.ps1`.
+and `scripts/launch-control-tower.ps1`.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\install.ps1"
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\create-desktop-shortcut.ps1"
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\launch-agent-dashboard.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\launch-control-tower.ps1"
 ```
 
 Then open:

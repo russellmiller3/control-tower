@@ -1,4 +1,4 @@
-# Agent Dashboard License (Fair Source)
+# Control Tower License (Fair Source)
 
 **Effective Date:** 2026-05-13
 **Copyright** © 2026 Russell Miller. All rights reserved.

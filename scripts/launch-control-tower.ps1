@@ -39,8 +39,8 @@ function Get-AppBrowser {
   return $null
 }
 
-$env:AGENT_DASHBOARD_PORT = "$Port"
-$env:AGENT_DASHBOARD_REPO = $repo
+$env:CONTROL_TOWER_PORT = "$Port"
+$env:CONTROL_TOWER_REPO = $repo
 
 if (-not (Test-DashboardReady -CheckPort $Port)) {
   Start-Process -FilePath "node" -ArgumentList "dashboard\server.cjs" -WorkingDirectory $repo -WindowStyle Hidden

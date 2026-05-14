@@ -4,7 +4,7 @@ Agent traffic control for Codex and Claude.
 
 Watch what your agents do. Catch them if they go dark.
 
-Most agent dashboards can only show what agents happen to log. Control Tower
+Most supervisor boards can only show what agents happen to log. Control Tower
 ships the missing half: hooks that make agents emit plain-English updates in
 the first place.
 
@@ -24,7 +24,7 @@ checkpoint progress, stalled-agent rescue, and token/cost visibility per agent.
 - **Codex + Claude source detection** - watches Windows-friendly `.codex` and `.claude` state paths automatically.
 - **Light default + nixie night mode** - use the toggle or `?theme=light` / `?theme=dark` for screenshots.
 - **Windows desktop + taskbar shortcut** - run the one-click installer or `scripts/create-desktop-shortcut.ps1`.
-- **Agent setup skill** - `skills/agent-dashboard-setup/SKILL.md` tells Claude or Codex how to install and verify it.
+- **Agent setup skill** - `skills/control-tower-setup/SKILL.md` tells Claude or Codex how to install and verify it.
 - **Static screenshot mode** - add `?static=1` so portfolio captures do not wait on the live event stream.
 - **Recent commits sidebar** - live `git log` of the active branch.
 - **Live SSE feed plus first-paint hydration** - events stream live, and screenshots render populated immediately.
@@ -73,13 +73,13 @@ The goal is simple:
 Double-click:
 
 ```text
-Install Agent Dashboard.cmd
+Install Control Tower.cmd
 ```
 
 Or run:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\Install Agent Dashboard.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\Install Control Tower.ps1"
 ```
 
 That installs the hooks and creates a desktop + taskbar shortcut named `Control Tower`.
@@ -90,8 +90,8 @@ shows up in the browser chrome and on the taskbar too.
 ### Install on macOS / Linux
 
 ```bash
-git clone <wherever you got this> agent-dashboard
-cd agent-dashboard
+git clone https://github.com/russellmiller3/control-tower.git control-tower
+cd control-tower
 ./scripts/install.sh
 ```
 
@@ -113,11 +113,15 @@ Open `http://localhost:9999` in your browser. Leave the tab open.
 Optional environment variables:
 
 ```powershell
-$env:AGENT_DASHBOARD_PORT="9999"
-$env:AGENT_DASHBOARD_REPO="C:\Users\rmill\Desktop\programming\clear"
+$env:CONTROL_TOWER_PORT="9999"
+$env:CONTROL_TOWER_REPO="C:\Users\rmill\Desktop\programming\clear"
 $env:AGENT_PULSE_LOG="C:\path\to\agent-pulse.log"
 node dashboard/server.cjs
 ```
+
+Control Tower also accepts the older `AGENT_DASHBOARD_PORT` and
+`AGENT_DASHBOARD_REPO` names for one release so existing shortcuts do not
+break mid-upgrade.
 
 By default the server watches:
 - `%USERPROFILE%\.codex\state\agent-pulse.log`
@@ -137,7 +141,7 @@ Then ask Claude to do anything that involves background agents. The hooks enforc
 
 ### Use the setup skill
 
-The repo includes `skills/agent-dashboard-setup/SKILL.md`.
+The repo includes `skills/control-tower-setup/SKILL.md`.
 
 Give that skill to Claude or Codex when you want the agent to:
 - Install the hooks
@@ -176,10 +180,10 @@ Full rules + examples in `AGENT-PULSE-CONTRACT.md`.
 ## Files in this repo
 
 ```
-agent-dashboard/
+control-tower/
 |-- README.md
-|-- Install Agent Dashboard.cmd      # double-click Windows installer
-|-- Install Agent Dashboard.ps1      # one-click PowerShell installer
+|-- Install Control Tower.cmd        # double-click Windows installer
+|-- Install Control Tower.ps1        # one-click PowerShell installer
 |-- SETUP-PROMPT.md                  # paste into Claude Code to wire it up
 |-- AGENT-PULSE-CONTRACT.md          # pulse format spec for agents
 |-- LICENSE.md                       # Fair Source: free personal, paid commercial
@@ -196,10 +200,10 @@ agent-dashboard/
 |   |-- install.sh                   # macOS / Linux installer
 |   |-- install.ps1                  # Windows PowerShell installer
 |   |-- create-desktop-shortcut.ps1  # Windows desktop + taskbar shortcut creator
-|   |-- launch-agent-dashboard.ps1   # Windows launcher used by the shortcut
+|   |-- launch-control-tower.ps1     # Windows launcher used by the shortcut
 |   `-- pulse-watch.cjs              # terminal alternative to the web UI
 `-- skills/
-    `-- agent-dashboard-setup/
+    `-- control-tower-setup/
         `-- SKILL.md                 # setup skill for Claude/Codex
 ```
 

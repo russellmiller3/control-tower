@@ -1654,9 +1654,13 @@
   const urlParams = new URLSearchParams(window.location.search);
   const requestedTheme = urlParams.get('theme');
   const useDemo = urlParams.has('demo');
-  const storedTheme = localStorage.getItem('agent-dashboard-theme');
-  const initialTheme = requestedTheme || storedTheme || 'light';
+  const storedTheme = localStorage.getItem('control-tower-theme');
+  const legacyTheme = localStorage.getItem('agent-dashboard-theme');
+  const initialTheme = requestedTheme || storedTheme || legacyTheme || 'light';
   if (initialTheme === 'light' || initialTheme === 'dark') {
+    if (!storedTheme) {
+      localStorage.setItem('control-tower-theme', initialTheme);
+    }
     document.documentElement.dataset.theme = initialTheme;
   }
 
@@ -1762,7 +1766,7 @@
     const now = Date.now();
     return {
       now,
-      repo: 'agent-dashboard',
+      repo: 'control-tower',
       branch: 'feature/sharpen-positioning',
       headLog: 'demo 2m ago Rescue queue preview',
       commitsAhead: 4,
@@ -1774,7 +1778,7 @@
       sources: [
         { key: 'codex', label: 'Codex', file: 'C:\\Users\\rmill\\.codex\\state\\agent-pulse.log', exists: true },
         { key: 'claude', label: 'Claude', file: 'C:\\Users\\rmill\\.claude\\state\\agent-pulse.log', exists: true },
-        { key: 'local', label: 'Local', file: 'C:\\Users\\rmill\\Desktop\\programming\\agent-dashboard\\agent-pulse.log', exists: true },
+        { key: 'local', label: 'Local', file: 'C:\\Users\\rmill\\Desktop\\programming\\control-tower\\agent-pulse.log', exists: true },
       ],
       agents: [
         {
@@ -1839,7 +1843,7 @@
         },
       ],
       commits: [
-        { sha: 'a712fb8', when: '62 minutes ago', msg: 'Redesign agent dashboard portfolio UI' },
+        { sha: 'a712fb8', when: '62 minutes ago', msg: 'Redesign Control Tower portfolio UI' },
         { sha: '43ec4c4', when: '2 hours ago', msg: 'Restore completed-card expand behavior' },
         { sha: 'a797811', when: '2 hours ago', msg: 'Show completed cards as plain divs' },
       ],
@@ -2216,7 +2220,7 @@
   $('theme-toggle').addEventListener('click', () => {
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
-    localStorage.setItem('agent-dashboard-theme', next);
+    localStorage.setItem('control-tower-theme', next);
     $('theme-toggle').querySelector('span').textContent = next === 'dark' ? 'Light' : 'Night';
   });
 
