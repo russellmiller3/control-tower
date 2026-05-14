@@ -37,13 +37,13 @@ function isSubagentTranscript(transcriptPath) {
   return /\/tasks\//.test(normalized) && /\.output$/.test(normalized);
 }
 
-function pulseLogHasRecentEntry() {
+function pulseLogHasRecentCheckpointEntry() {
   if (!existsSync(PULSE_LOG)) return false;
   try {
     const stat = statSync(PULSE_LOG);
     if (Date.now() - stat.mtimeMs > RECENCY_MS) return false;
     const raw = readFileSync(PULSE_LOG, 'utf8');
-    return raw.trim().length > 0;
+    return /Agent:\s*(?:Plan|Replan|Progress):/i.test(raw);
   } catch {
     return false;
   }
@@ -76,7 +76,7 @@ function main() {
     return;
   }
 
-  if (pulseLogHasRecentEntry()) {
+  if (pulseLogHasRecentCheckpointEntry()) {
     process.exit(0);
     return;
   }
