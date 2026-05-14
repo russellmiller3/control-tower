@@ -1,17 +1,17 @@
-# Agent Dashboard
+# Control Tower
 
-A hook-enforced live dashboard for parallel Codex and Claude agents.
+Agent traffic control for Codex and Claude.
 
 Watch what your agents do. Catch them if they go dark.
 
-Most agent dashboards can only show what agents happen to log. Agent Dashboard
+Most agent dashboards can only show what agents happen to log. Control Tower
 ships the missing half: hooks that make agents emit plain-English updates in
 the first place.
 
 Those enforced updates power the useful parts: live agent status, stalled-agent
 rescue, and token/cost visibility per agent.
 
-![Agent Dashboard preview](./preview-active-agents.png)
+![Control Tower preview](./preview-active-agents.png)
 
 ## What you get
 
@@ -22,7 +22,7 @@ rescue, and token/cost visibility per agent.
 - **Rescue queue** - ranks agents that are silent, dormant, or showing problem signals.
 - **Codex + Claude source detection** - watches Windows-friendly `.codex` and `.claude` state paths automatically.
 - **Light default + nixie night mode** - use the toggle or `?theme=light` / `?theme=dark` for screenshots.
-- **Windows desktop shortcut** - run the one-click installer or `scripts/create-desktop-shortcut.ps1`.
+- **Windows desktop + taskbar shortcut** - run the one-click installer or `scripts/create-desktop-shortcut.ps1`.
 - **Agent setup skill** - `skills/agent-dashboard-setup/SKILL.md` tells Claude or Codex how to install and verify it.
 - **Static screenshot mode** - add `?static=1` so portfolio captures do not wait on the live event stream.
 - **Recent commits sidebar** - live `git log` of the active branch.
@@ -81,7 +81,10 @@ Or run:
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\Install Agent Dashboard.ps1"
 ```
 
-That installs the hooks and creates a desktop shortcut named `Agent Dashboard`.
+That installs the hooks and creates a desktop + taskbar shortcut named `Control Tower`.
+
+The Windows launcher opens Control Tower in a dedicated app window so the icon
+shows up in the browser chrome and on the taskbar too.
 
 ### Install on macOS / Linux
 
@@ -137,7 +140,7 @@ The repo includes `skills/agent-dashboard-setup/SKILL.md`.
 
 Give that skill to Claude or Codex when you want the agent to:
 - Install the hooks
-- Create the Windows desktop shortcut
+- Create the Windows desktop + taskbar shortcut
 - Launch the dashboard
 - Verify the demo preview
 - Confirm tokens, costs, rescue, and footer contact details render
@@ -191,7 +194,7 @@ agent-dashboard/
 |-- scripts/
 |   |-- install.sh                   # macOS / Linux installer
 |   |-- install.ps1                  # Windows PowerShell installer
-|   |-- create-desktop-shortcut.ps1  # Windows desktop shortcut creator
+|   |-- create-desktop-shortcut.ps1  # Windows desktop + taskbar shortcut creator
 |   |-- launch-agent-dashboard.ps1   # Windows launcher used by the shortcut
 |   `-- pulse-watch.cjs              # terminal alternative to the web UI
 `-- skills/

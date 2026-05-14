@@ -18,10 +18,19 @@ const { execFileSync } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname);
 const APP_ROOT = path.resolve(ROOT, '..');
+const ASSET_ROOT = path.join(ROOT, 'assets');
 const HOME = os.homedir();
 const PORT = Number(process.env.AGENT_DASHBOARD_PORT || 9999);
 const STALL_MS = 3 * 60 * 1000;
 const DORMANT_MS = 30 * 60 * 1000;
+
+function contentType(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === '.svg') return 'image/svg+xml; charset=utf-8';
+  if (ext === '.png') return 'image/png';
+  if (ext === '.ico') return 'image/x-icon';
+  return 'application/octet-stream';
+}
 
 function gitRoot(candidate) {
   try {
@@ -346,6 +355,24 @@ const server = http.createServer((req, res) => {
     );
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
     res.end(hydratedHtml);
+    return;
+  }
+
+  if (requestUrl.pathname.startsWith('/assets/')) {
+    const relativePath = requestUrl.pathname.replace(/^\/assets\//, '');
+    const filePath = path.resolve(ASSET_ROOT, relativePath);
+    if (!filePath.startsWith(ASSET_ROOT + path.sep) && filePath !== ASSET_ROOT) {
+      res.writeHead(404);
+      res.end('not found');
+      return;
+    }
+    if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+      res.writeHead(404);
+      res.end('not found');
+      return;
+    }
+    res.writeHead(200, { 'content-type': contentType(filePath) });
+    fs.createReadStream(filePath).pipe(res);
     return;
   }
 

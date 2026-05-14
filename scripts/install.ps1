@@ -1,4 +1,4 @@
-# Agent Dashboard — Windows PowerShell installer.
+# Control Tower - Windows PowerShell installer.
 # Copies hooks into ~/.claude/hooks/, patches ~/.claude/settings.json
 # (with a timestamped backup), and creates the pulse log directory.
 
@@ -10,7 +10,7 @@ $HooksDir  = Join-Path $ClaudeDir "hooks"
 $StateDir  = Join-Path $ClaudeDir "state"
 $Settings  = Join-Path $ClaudeDir "settings.json"
 
-Write-Host "Agent Dashboard installer"
+Write-Host "Control Tower installer"
 Write-Host "  repo:     $RepoDir"
 Write-Host "  target:   $ClaudeDir"
 Write-Host ""

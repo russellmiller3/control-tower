@@ -1,15 +1,15 @@
-# Agent Dashboard Setup
+# Control Tower Setup
 
-Use this skill when someone asks Claude or Codex to install Agent Dashboard,
+Use this skill when someone asks Claude or Codex to install Control Tower,
 wire the hooks, create a Windows desktop shortcut, or verify the local
 dashboard setup.
 
 ## What This Installs
 
-- The Agent Dashboard web server at `http://127.0.0.1:9999`.
+- The Control Tower web server at `http://127.0.0.1:9999`.
 - Five Claude Code hooks that make agents emit plain-English progress pulses.
 - A shared pulse log at `~/.claude/state/agent-pulse.log`.
-- A Windows desktop shortcut named `Agent Dashboard`.
+- A Windows desktop + taskbar shortcut named `Control Tower`.
 
 ## Windows One-Click Path
 
@@ -85,6 +85,7 @@ The demo must show:
 - One agent needing rescue.
 - Tokens and cost per agent.
 - Russell Miller contact details in the lower-right footer.
+- The Control Tower icon in the browser tab.
 
 ## Pulse Format
 

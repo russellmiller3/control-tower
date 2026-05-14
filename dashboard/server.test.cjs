@@ -93,13 +93,16 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   const themedHtml = await themedPage.text();
   assert.match(themedHtml, /window\.__INITIAL_STATE__ = /);
   assert.match(themedHtml, /<html lang="en" data-theme="light">/);
-  assert.match(themedHtml, /Agent Dashboard/);
-  assert.match(themedHtml, /Hook-enforced updates/);
-  assert.match(themedHtml, /Watch what your agents do/);
+  assert.match(themedHtml, /Control Tower/);
+  assert.match(themedHtml, /Agent traffic control for Codex and Claude/);
+  assert.match(themedHtml, /Watch what your agents do\. Catch them if they go dark\./);
   assert.match(themedHtml, /Needs Supervisor/);
-  assert.match(themedHtml, /Supervisor Agent/);
+  assert.match(themedHtml, /Live Agent Traffic/);
+  assert.match(themedHtml, /Supervisor Console/);
   assert.match(themedHtml, /Tokens/);
   assert.match(themedHtml, /Cost/);
+  assert.match(themedHtml, /radar-scope/);
+  assert.match(themedHtml, /control-tower-32\.png/);
   assert.match(themedHtml, /portfolio-card/);
   assert.match(themedHtml, /Russell Miller/);
   assert.match(themedHtml, /rmiller@zavient\.com/);
@@ -107,24 +110,37 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   assert.match(themedHtml, /Auth cleanup/);
   assert.match(themedHtml, /state: 'dormant'/);
   assert.match(themedHtml, /3 agents are working/);
+
+  const icon = await fetch(`http://127.0.0.1:${port}/assets/control-tower.svg`);
+  assert.equal(icon.status, 200);
+  const iconSvg = await icon.text();
+  assert.match(iconSvg, /<svg/);
+  assert.match(iconSvg, /Control Tower icon/);
 });
 
 test('ships a Windows desktop shortcut launcher script', () => {
   const shortcutScript = fs.readFileSync(path.join(ROOT, 'scripts', 'create-desktop-shortcut.ps1'), 'utf8');
-  assert.match(shortcutScript, /Agent Dashboard/);
+  const launcherScript = fs.readFileSync(path.join(ROOT, 'scripts', 'launch-agent-dashboard.ps1'), 'utf8');
+  assert.match(shortcutScript, /Control Tower/);
   assert.match(shortcutScript, /dashboard\\server\.cjs/);
+  assert.match(shortcutScript, /control-tower\.ico/);
+  assert.match(shortcutScript, /TaskBar/);
   assert.match(shortcutScript, /WScript\.Shell/);
+  assert.match(launcherScript, /--app=http:\/\/127\.0\.0\.1:\$Port\/\?theme=light/);
+  assert.match(launcherScript, /msedge\.exe|chrome\.exe/);
 });
 
 test('ships a setup skill and one-click Windows installer', () => {
   const skill = fs.readFileSync(path.join(ROOT, 'skills', 'agent-dashboard-setup', 'SKILL.md'), 'utf8');
-  assert.match(skill, /Agent Dashboard Setup/);
+  assert.match(skill, /Control Tower Setup/);
   assert.match(skill, /scripts\/install.ps1/);
   assert.match(skill, /create-desktop-shortcut.ps1/);
+  assert.match(skill, /taskbar/i);
 
   const oneClick = fs.readFileSync(path.join(ROOT, 'Install Agent Dashboard.ps1'), 'utf8');
   assert.match(oneClick, /scripts\\install\.ps1/);
   assert.match(oneClick, /create-desktop-shortcut\.ps1/);
+  assert.match(oneClick, /Control Tower/);
 
   const mainThreadHook = fs.readFileSync(path.join(ROOT, 'hooks', 'main-thread-pulse.mjs'), 'utf8');
   assert.match(mainThreadHook, /PostToolUse/);

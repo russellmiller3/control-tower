@@ -2,8 +2,13 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
-<title>Agent Dashboard</title>
+<title>Control Tower</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Watch what your agents do. Catch them if they go dark.">
+<meta name="theme-color" content="#f7f4ed">
+<link rel="icon" type="image/svg+xml" href="/assets/control-tower.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/control-tower-32.png">
+<link rel="apple-touch-icon" href="/assets/control-tower-180.png">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
   :root {
@@ -100,6 +105,25 @@
 
   .brand {
     min-width: 0;
+  }
+
+  .brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .brand-copy {
+    min-width: 0;
+  }
+
+  .brand-mark {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(35, 28, 16, 0.14);
+    flex: 0 0 auto;
   }
 
   h1 {
@@ -455,6 +479,200 @@
     min-width: 0;
   }
 
+  .control-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .mission-card,
+  .radar-panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .mission-card {
+    padding: 22px 20px;
+  }
+
+  .mission-card h2 {
+    font-family: var(--serif);
+    color: var(--text-strong);
+    font-size: clamp(42px, 5vw, 72px);
+    line-height: 0.88;
+    letter-spacing: 0;
+    margin: 10px 0 14px;
+    max-width: 880px;
+  }
+
+  .mission-card p {
+    color: var(--muted);
+    max-width: 760px;
+    font-size: 15px;
+    margin: 0;
+  }
+
+  .signal-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .signal-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .radar-panel {
+    padding: 16px;
+    background:
+      radial-gradient(circle at 24% 28%, rgba(114, 168, 103, 0.2), transparent 34%),
+      linear-gradient(180deg, #202721 0%, #161a16 100%);
+    border-color: #494332;
+    color: #efe4c6;
+  }
+
+  .radar-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .radar-copy {
+    min-width: 0;
+  }
+
+  .radar-kicker {
+    color: #b7ab8a;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+
+  .radar-title {
+    margin: 6px 0 4px;
+    color: #f4e5ba;
+    font-family: var(--serif);
+    font-size: clamp(28px, 3vw, 42px);
+    line-height: 0.92;
+  }
+
+  .radar-subtitle {
+    color: #d6c8a2;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .radar-grid {
+    display: grid;
+    grid-template-columns: 148px 1fr;
+    gap: 14px;
+    align-items: center;
+    margin-top: 14px;
+  }
+
+  .radar-scope {
+    position: relative;
+    width: 148px;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    border: 2px solid rgba(203, 179, 111, 0.32);
+    background:
+      radial-gradient(circle at center, rgba(104, 255, 125, 0.22) 0 6%, transparent 7% 100%),
+      radial-gradient(circle at center, transparent 0 60%, rgba(81, 122, 73, 0.22) 61% 62%, transparent 63% 100%),
+      radial-gradient(circle at center, transparent 0 32%, rgba(81, 122, 73, 0.24) 33% 34%, transparent 35% 100%),
+      linear-gradient(90deg, transparent 49%, rgba(93, 149, 85, 0.28) 50%, transparent 51%),
+      linear-gradient(transparent 49%, rgba(93, 149, 85, 0.28) 50%, transparent 51%),
+      radial-gradient(circle at center, #182b1a 0%, #0f1a10 70%, #0b120c 100%);
+    box-shadow: inset 0 0 34px rgba(62, 185, 87, 0.18), 0 0 22px rgba(0, 0, 0, 0.24);
+    overflow: hidden;
+  }
+
+  .radar-sweep {
+    position: absolute;
+    inset: -8%;
+    background: conic-gradient(from 300deg, rgba(88, 232, 114, 0.58), transparent 42deg, transparent 360deg);
+    filter: blur(1px);
+    transform: rotate(8deg);
+    opacity: 0.86;
+  }
+
+  .radar-dot {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    border-radius: 999px;
+    background: #7cff87;
+    box-shadow: 0 0 10px rgba(124, 255, 135, 0.92);
+  }
+
+  .radar-dot.one { top: 36%; left: 61%; }
+  .radar-dot.two { top: 58%; left: 29%; width: 9px; height: 9px; }
+  .radar-dot.three { top: 24%; left: 42%; width: 8px; height: 8px; }
+  .radar-dot.alert {
+    top: 69%;
+    left: 71%;
+    background: #ff7f66;
+    box-shadow: 0 0 12px rgba(255, 127, 102, 0.92);
+  }
+
+  .summary-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .signal-tile {
+    border: 1px solid rgba(201, 180, 122, 0.22);
+    background: rgba(9, 10, 10, 0.28);
+    border-radius: var(--radius);
+    padding: 10px;
+    min-height: 86px;
+  }
+
+  .signal-tile strong {
+    display: block;
+    color: #f4e5ba;
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 0.95;
+    margin-top: 8px;
+  }
+
+  .signal-tile.alert {
+    border-color: rgba(255, 127, 102, 0.46);
+    background: rgba(103, 34, 25, 0.22);
+  }
+
+  .signal-tile.alert strong,
+  .signal-tile.alert .metric-caption {
+    color: #ff9d85;
+  }
+
+  .metric-caption {
+    color: #d6c8a2;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
   .metric.danger {
     border-color: var(--red);
     background: var(--red-soft);
@@ -702,6 +920,26 @@
     overflow-wrap: anywhere;
   }
 
+  .now-box {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel);
+  }
+
+  .now-box.alert {
+    border-color: rgba(200, 55, 50, 0.42);
+    background: rgba(200, 55, 50, 0.08);
+  }
+
+  .now-copy {
+    margin-top: 4px;
+    color: var(--text-strong);
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
   .activity-list {
     margin-top: 12px;
     display: grid;
@@ -909,6 +1147,42 @@
     overflow-wrap: anywhere;
   }
 
+  .traffic-stream {
+    display: grid;
+    gap: 8px;
+  }
+
+  .traffic-row {
+    display: grid;
+    grid-template-columns: 62px 18px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px;
+    background: var(--panel-2);
+  }
+
+  .traffic-row time {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: right;
+  }
+
+  .traffic-agent {
+    color: var(--text-strong);
+    font-family: var(--mono);
+    font-size: 11px;
+    margin-bottom: 3px;
+  }
+
+  .traffic-text {
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
   .commit-row {
     font-size: 12px;
     line-height: 1.4;
@@ -1045,8 +1319,18 @@
   }
 
   @media (max-width: 1180px) {
+    .control-band,
     .positioning {
       grid-template-columns: 1fr;
+    }
+    .radar-grid {
+      grid-template-columns: 1fr;
+    }
+    .radar-scope {
+      margin: 0 auto;
+    }
+    .summary-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .overview {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1067,6 +1351,7 @@
       padding: 16px 14px 176px;
     }
     .topbar,
+    .control-band,
     .positioning,
     .controls,
     footer.portfolio {
@@ -1081,6 +1366,7 @@
       grid-template-columns: 1fr;
     }
     .overview,
+    .summary-strip,
     .agents-grid,
     .secondary-actions {
       grid-template-columns: 1fr;
@@ -1095,8 +1381,13 @@
 <div class="shell">
   <header class="topbar">
     <div class="brand">
-      <h1>Agent Dashboard</h1>
-      <div class="tagline">Hook-enforced updates for parallel Codex and Claude agents.</div>
+      <div class="brand-lockup">
+        <img class="brand-mark" src="/assets/control-tower.svg" alt="">
+        <div class="brand-copy">
+          <h1>Control Tower</h1>
+          <div class="tagline">Agent traffic control for Codex and Claude.</div>
+        </div>
+      </div>
     </div>
     <div class="top-actions">
       <div class="meta-pill" title="Current branch"><i class="icon" data-lucide="git-branch"></i><span id="branch">loading</span></div>
@@ -1106,38 +1397,57 @@
     </div>
   </header>
 
-  <section class="positioning" aria-label="Product positioning">
-    <div class="hero-copy">
-      <div class="wedge-label"><i class="icon" data-lucide="shield-check"></i><span>Hook-enforced updates</span></div>
+  <section class="control-band" aria-label="Control tower overview">
+    <div class="mission-card">
+      <div class="wedge-label"><i class="icon" data-lucide="tower-control"></i><span>Live agent traffic</span></div>
       <h2>Watch what your agents do. Catch them if they go dark.</h2>
-      <p>The hooks make progress reporting structural. Agents emit plain-English pulses at spawn, during work, and before stop, then the dashboard turns those pulses into live status, costs, and rescue actions.</p>
-      <div class="proof-row">
-        <span class="proof-pill"><i class="icon" data-lucide="workflow"></i>Spawn gate</span>
-        <span class="proof-pill"><i class="icon" data-lucide="radio"></i>Ambient pulses</span>
-        <span class="proof-pill"><i class="icon" data-lucide="receipt-text"></i>Token + cost rollups</span>
+      <p>Plain-English pulses turn parallel coding work into something you can actually supervise. Four live lanes stay visible, cost stays attached, and the stalled run gets escalated fast.</p>
+      <div class="signal-row">
+        <span class="signal-pill"><i class="icon" data-lucide="radio"></i>Live pulses</span>
+        <span class="signal-pill"><i class="icon" data-lucide="receipt-text"></i>Token + cost per lane</span>
+        <span class="signal-pill"><i class="icon" data-lucide="siren"></i>Supervisor rescue</span>
       </div>
     </div>
 
-    <div class="rescue-card">
-      <div class="panel-head">
-        <h2 class="panel-title">Hook Layer</h2>
-        <div class="section-label">5 checks</div>
+    <div class="radar-panel">
+      <div class="radar-head">
+        <div class="radar-copy">
+          <div class="radar-kicker">Control tower view</div>
+          <div class="radar-title">Control Tower</div>
+          <div class="radar-subtitle">Live traffic. Live pulses. Live progress.</div>
+        </div>
+        <button class="theme-btn" type="button" aria-hidden="true" tabindex="-1"><i class="icon" data-lucide="moon"></i><span>Night</span></button>
       </div>
-      <div class="hook-list">
-        <div class="hook-row"><span>Spawn isolation</span><strong>worktree required</strong></div>
-        <div class="hook-row"><span>Pulse contract</span><strong>brief must commit</strong></div>
-        <div class="hook-row"><span>Stop enforcement</span><strong>narrative pulse required</strong></div>
-        <div class="hook-row"><span>Main thread pulses</span><strong>edits/tests/builds emit</strong></div>
-        <div class="hook-row"><span>Parallel nudge</span><strong>spawn safe work</strong></div>
-      </div>
-    </div>
-
-    <div class="loop-card">
-      <div class="section-label">Supervisor Agent loop</div>
-      <div class="loop-steps">
-        <div class="loop-step"><span class="step-index">1</span><div class="loop-copy"><strong>Detect silence</strong><span>Spot the agent that stopped producing useful output.</span></div></div>
-        <div class="loop-step"><span class="step-index">2</span><div class="loop-copy"><strong>Read tokens and cost</strong><span>See what each agent is spending while it works.</span></div></div>
-        <div class="loop-step"><span class="step-index">3</span><div class="loop-copy"><strong>Send Supervisor Agent</strong><span>Write a recovery request back into the pulse stream.</span></div></div>
+      <div class="radar-grid">
+        <div class="radar-scope" aria-hidden="true">
+          <div class="radar-sweep"></div>
+          <span class="radar-dot one"></span>
+          <span class="radar-dot two"></span>
+          <span class="radar-dot three"></span>
+          <span class="radar-dot alert"></span>
+        </div>
+        <div class="summary-strip">
+          <div class="signal-tile">
+            <div class="metric-caption">Working</div>
+            <strong id="band-working">0</strong>
+            <div class="metric-caption">live lanes</div>
+          </div>
+          <div class="signal-tile alert">
+            <div class="metric-caption">Needs Supervisor</div>
+            <strong id="band-attention">0</strong>
+            <div class="metric-caption">intervention now</div>
+          </div>
+          <div class="signal-tile">
+            <div class="metric-caption">Tokens 24h</div>
+            <strong id="band-tokens">--</strong>
+            <div class="metric-caption">rolling total</div>
+          </div>
+          <div class="signal-tile">
+            <div class="metric-caption">Cost 24h</div>
+            <strong id="band-cost">--</strong>
+            <div class="metric-caption">rolling total</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1167,7 +1477,7 @@
   <main class="workspace">
     <section class="agents-panel" aria-label="Agent runs">
       <div class="panel-head">
-        <h2 class="panel-title">Agent Runs</h2>
+        <h2 class="panel-title">Live Agent Traffic</h2>
         <div class="section-label" id="agent-count">0 agents</div>
       </div>
       <div class="agents-grid" id="agents"><div class="empty">Waiting for first pulse...</div></div>
@@ -1176,18 +1486,18 @@
     <aside class="right-rail">
       <section class="inspector" aria-label="Agent detail">
         <div class="panel-head">
-          <h2 class="panel-title">Supervisor Agent</h2>
+          <h2 class="panel-title">Supervisor Console</h2>
           <div class="section-label" id="detail-source">No selection</div>
         </div>
         <div id="inspector-body" class="inspector-empty">Select an agent to inspect its goal, timeline, and recovery actions.</div>
       </section>
 
-      <section class="source-panel" aria-label="Signal sources">
+      <section class="source-panel" aria-label="Recent traffic">
         <div class="panel-head">
-          <h2 class="panel-title">Signal Sources</h2>
+          <h2 class="panel-title">Recent Traffic</h2>
           <div class="section-label" id="connection-state">Connecting</div>
         </div>
-        <div class="source-grid" id="sources"></div>
+        <div class="traffic-stream" id="sources"></div>
       </section>
 
       <section class="commits-panel" aria-label="Recent commits">
@@ -1205,8 +1515,8 @@
 
 <footer class="portfolio">
   <div class="portfolio-note">
-    <strong>Hook-enforced agent updates</strong>
-    <span>Live status, rescue, and cost visibility for parallel coding agents.</span>
+    <strong>Control Tower</strong>
+    <span>Agent traffic control for parallel coding agents.</span>
   </div>
   <section class="portfolio-card" aria-label="Built by Russell Miller">
     <div class="signature">
@@ -1470,6 +1780,10 @@
     return '$' + Number(value).toFixed(2);
   }
 
+  function latestEvent(agent) {
+    return (agent.events || [])[0] || null;
+  }
+
   function renderOverview(state) {
     const agents = state.agents || [];
     const total = agents.length;
@@ -1488,10 +1802,14 @@
     $('metric-commits').textContent = state.commitsAhead || 0;
     $('metric-cost').textContent = formatCost(state.costUsdTotal || 0);
     $('metric-tokens').textContent = formatTokens(state.tokensTotal || 0);
+    $('band-attention').textContent = attention;
+    $('band-working').textContent = working;
+    $('band-cost').textContent = formatCost(state.costUsdTotal || 0);
+    $('band-tokens').textContent = formatTokens(state.tokensTotal || 0);
 
     let copy = 'Waiting for the first agent pulse.';
     if (total && attention) {
-      copy = attention + ' agent' + (attention === 1 ? ' needs' : 's need') + ' rescue. ' + working + ' agents are working.';
+      copy = attention + ' agent' + (attention === 1 ? ' needs' : 's need') + ' supervisor. ' + working + ' agents are working.';
     } else if (total && completed === total) {
       copy = 'All agents report complete. This is the merge-review moment.';
     } else if (total) {
@@ -1627,7 +1945,8 @@
       const selected = key === selectedKey ? ' selected' : '';
       const triage = triageOf(agent);
       const cardClass = triage === 'attention' ? 'problem' : agent.state;
-      const recent = (agent.events || []).slice(0, 3).map((event) => renderActivity(event, state.now)).join('');
+      const lead = latestEvent(agent);
+      const recent = (agent.events || []).slice(1, 4).map((event) => renderActivity(event, state.now)).join('');
       const usage = '<div class="usage-row"><span class="badge">Tokens ' + escapeHtml(formatTokens(agent.tokens || 0)) + '</span><span class="badge">Cost ' + escapeHtml(formatCost(agent.costUsd || 0)) + '</span></div>';
       return '<button type="button" class="agent-card ' + cardClass + selected + '" data-agent="' + escapeHtml(key) + '">'
         + '<div class="agent-head">'
@@ -1639,6 +1958,7 @@
         + '</div></div>'
         + '<div class="time-chip">' + relTime(agent.lastEmitMs, state.now) + '</div>'
         + '</div>'
+        + '<div class="now-box ' + (triage === 'attention' ? 'alert' : '') + '"><div class="card-label">Right now</div><div class="now-copy">' + escapeHtml(lead ? lead.text : agent.goal) + '</div></div>'
         + '<div class="goal-box"><div class="card-label">Goal</div><div class="goal-text">' + escapeHtml(agent.goal) + '</div></div>'
         + usage
         + '<div class="activity-list">' + recent + '</div>'
@@ -1712,16 +2032,27 @@
   }
 
   function renderSources(state) {
-    const sources = state.sources || [];
-    if (!sources.length) {
-      $('sources').innerHTML = '<div class="empty">No pulse sources configured.</div>';
+    const traffic = (state.agents || [])
+      .flatMap((agent) => (agent.events || []).slice(0, 1).map((event) => ({
+        task: agent.task,
+        state: agent.state,
+        ms: event.ms,
+        time: relTime(event.ms, state.now),
+        text: event.text,
+      })))
+      .sort((a, b) => b.ms - a.ms)
+      .slice(0, 5);
+
+    if (!traffic.length) {
+      $('sources').innerHTML = '<div class="empty">No live traffic yet.</div>';
       return;
     }
-    $('sources').innerHTML = sources.map((source) => (
-      '<div class="source-row">'
-      + '<span class="status-dot ' + (source.exists ? 'status-working' : 'status-dormant') + '"></span>'
-      + '<div><div class="source-name">' + escapeHtml(source.label) + '</div><div class="section-label">' + (source.exists ? 'found' : 'not found') + '</div></div>'
-      + '<div class="source-file">' + escapeHtml(source.file) + '</div>'
+
+    $('sources').innerHTML = traffic.map((item) => (
+      '<div class="traffic-row">'
+      + '<time>' + escapeHtml(item.time) + '</time>'
+      + '<span class="status-dot status-' + escapeHtml(item.state) + '"></span>'
+      + '<div><div class="traffic-agent">' + escapeHtml(item.task) + '</div><div class="traffic-text">' + escapeHtml(item.text) + '</div></div>'
       + '</div>'
     )).join('');
   }

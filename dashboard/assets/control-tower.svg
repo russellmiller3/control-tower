@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Control Tower icon</title>
+  <desc id="desc">Radar scope with a control tower and alert blip.</desc>
+  <rect x="12" y="12" width="232" height="232" rx="52" fill="#f7f4ed"/>
+  <rect x="12" y="12" width="232" height="232" rx="52" fill="none" stroke="#d2c4ad" stroke-width="4"/>
+  <circle cx="128" cy="128" r="84" fill="#10271b"/>
+  <circle cx="128" cy="128" r="84" fill="none" stroke="#395643" stroke-width="3"/>
+  <circle cx="128" cy="128" r="56" fill="none" stroke="#395643" stroke-width="2.5"/>
+  <circle cx="128" cy="128" r="30" fill="none" stroke="#395643" stroke-width="2"/>
+  <path d="M128 128 L202 94 A84 84 0 0 1 182 182 Z" fill="#f2c05d" opacity="0.38"/>
+  <path d="M128 128 L193 98 A74 74 0 0 1 176 176 Z" fill="#f6d98a" opacity="0.26"/>
+  <line x1="44" y1="128" x2="212" y2="128" stroke="#55745e" stroke-width="2"/>
+  <line x1="128" y1="44" x2="128" y2="212" stroke="#55745e" stroke-width="2"/>
+  <circle cx="101" cy="88" r="7" fill="#74e68a"/>
+  <circle cx="79" cy="152" r="6" fill="#74e68a"/>
+  <circle cx="178" cy="165" r="8" fill="#e26754"/>
+  <path d="M112 182 L144 182 L138 126 L118 126 Z" fill="#f7f4ed"/>
+  <path d="M108 118 L148 118 L140 98 L116 98 Z" fill="#f7f4ed"/>
+  <rect x="121" y="84" width="14" height="10" rx="3" fill="#f2c05d"/>
+  <rect x="103" y="188" width="50" height="12" rx="6" fill="#f2c05d"/>
+</svg>
