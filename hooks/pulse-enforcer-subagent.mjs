@@ -36,13 +36,13 @@ function isSubagentTranscript(transcriptPath) {
   return /\/tasks\//.test(normalized) && /\.output$/.test(normalized);
 }
 
-function pulseLogHasRecentEntry() {
+function pulseLogHasRecentCheckpointEntry() {
   if (!existsSync(PULSE_LOG)) return false;
   try {
     const stat = statSync(PULSE_LOG);
     if (Date.now() - stat.mtimeMs > RECENCY_MS) return false;
     const raw = readFileSync(PULSE_LOG, 'utf8');
-    return raw.trim().length > 0;
+    return /Agent:\s*(?:Plan|Replan|Progress):/i.test(raw);
   } catch {
     return false;
   }
@@ -75,30 +75,37 @@ function main() {
     return;
   }
 
-  if (pulseLogHasRecentEntry()) {
+  if (pulseLogHasRecentCheckpointEntry()) {
     process.exit(0);
     return;
   }
 
   // Block — agent hasn't emitted any pulse in this run
-  const reason = `STOP BLOCKED — you (the background subagent) did not emit a single narrative pulse during this run.
+  const reason = `STOP BLOCKED — you (the background subagent) did not emit a single narrative checkpoint pulse during this run.
 
 Russell's rule: every background agent must emit plain-English progress events to programming/.claude/state/agent-pulse.log so he sees what you did without polling git.
 
-Before completing, append at least one summary pulse describing what you accomplished + any red flags for follow-up work. Use this format:
+Before completing, append:
+1. a Plan: <total checkpoints> - ... pulse if you never emitted one
+2. a Progress: <current>/<total> - ... pulse describing the checkpoint you just cleared
 
-[<ISO timestamp>] [<TASK NAME from your brief>] Agent: <plain English summary of what you did, what tests landed, any open issues>
+Use this format:
+
+[<ISO timestamp>] [<TASK NAME from your brief>] Agent: Plan: 4 checkpoints - parser pass, implementation, smoke test, docs
+[<ISO timestamp>] [<TASK NAME from your brief>] Agent: Progress: 1/4 - Wrote the failing test and confirmed the bug
 
 How (bash):
   PULSE=/c/Users/rmill/Desktop/programming/.claude/state/agent-pulse.log
   ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-  echo "[$ts] [<TASK NAME>] Agent: <summary>" >> "$PULSE"
+  echo "[$ts] [<TASK NAME>] Agent: Plan: 4 checkpoints - parser pass, implementation, smoke test, docs" >> "$PULSE"
+  echo "[$ts] [<TASK NAME>] Agent: Progress: 1/4 - Wrote the failing test and confirmed the bug" >> "$PULSE"
 
 How (Node):
   import { appendFileSync } from 'node:fs';
   const PULSE = '/c/Users/rmill/Desktop/programming/.claude/state/agent-pulse.log';
   const ts = new Date().toISOString().replace(/\\.\\d{3}Z$/, 'Z');
-  appendFileSync(PULSE, \`[\${ts}] [<TASK NAME>] Agent: <summary>\\n\`);
+  appendFileSync(PULSE, `[$\{ts}] [<TASK NAME>] Agent: Plan: 4 checkpoints - parser pass, implementation, smoke test, docs\\n`);
+  appendFileSync(PULSE, `[$\{ts}] [<TASK NAME>] Agent: Progress: 1/4 - Wrote the failing test and confirmed the bug\\n`);
 
 Then try to stop again. The hook will check for the entry and allow stop on the second pass.`;
 
