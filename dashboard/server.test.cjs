@@ -110,6 +110,8 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   assert.match(themedHtml, /Agent traffic control for Codex and Claude/);
   assert.match(themedHtml, /checkpoint-fill/);
   assert.match(themedHtml, /Checkpoint progress/);
+  assert.match(themedHtml, /Last 3 actions/);
+  assert.ok(!/Right now/.test(themedHtml));
   assert.match(themedHtml, /Watch what your agents do\. Catch them if they go dark\./);
   assert.match(themedHtml, /Needs Supervisor/);
   assert.match(themedHtml, /Live Agent Traffic/);

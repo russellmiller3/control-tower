@@ -77,7 +77,7 @@
     color: var(--text);
     font-family: var(--sans);
     line-height: 1.45;
-    padding: 22px 24px 104px;
+    padding: 18px 20px 84px;
   }
 
   button, a {
@@ -99,8 +99,8 @@
     gap: 18px;
     align-items: center;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 18px;
-    margin-bottom: 18px;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
   }
 
   .brand {
@@ -410,31 +410,39 @@
   }
 
   .overview {
-    display: grid;
-    grid-template-columns: minmax(300px, 1.15fr) repeat(4, minmax(140px, 0.35fr));
-    gap: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
 
   .health {
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 18px;
+    padding: 12px;
     box-shadow: var(--shadow);
+  }
+
+  .health-ribbon {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .health-ribbon-main {
+    min-width: 0;
   }
 
   .health-top {
     display: flex;
     align-items: flex-end;
-    gap: 14px;
+    gap: 10px;
     flex-wrap: wrap;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
   }
 
   .nixie-number {
     font-family: var(--serif);
-    font-size: clamp(34px, 4.4vw, 64px);
+    font-size: clamp(24px, 3vw, 40px);
     line-height: 0.9;
     color: var(--amber);
     text-shadow: 0 0 22px var(--amber-glow);
@@ -443,13 +451,13 @@
 
   .health-copy {
     color: var(--muted);
-    max-width: 620px;
-    font-size: 14px;
+    max-width: 520px;
+    font-size: 13px;
   }
 
   .progress-track {
     position: relative;
-    height: 11px;
+    height: 8px;
     background: var(--panel-3);
     border: 1px solid var(--line);
     border-radius: 999px;
@@ -475,15 +483,49 @@
   }
 
   .metric {
-    padding: 15px;
+    padding: 10px;
     min-width: 0;
+  }
+
+  .overview-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .overview-pill {
+    min-width: 96px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel);
+    padding: 8px 10px;
+  }
+
+  .overview-pill strong {
+    display: block;
+    margin-top: 4px;
+    font-family: var(--serif);
+    font-size: 20px;
+    line-height: 1;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .overview-pill.danger {
+    border-color: var(--red);
+    background: var(--red-soft);
+  }
+
+  .overview-pill.danger strong {
+    color: var(--red);
   }
 
   .control-band {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
     gap: 14px;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
 
   .mission-card,
@@ -495,48 +537,48 @@
   }
 
   .mission-card {
-    padding: 22px 20px;
+    padding: 16px 18px;
   }
 
   .mission-card h2 {
     font-family: var(--serif);
     color: var(--text-strong);
-    font-size: clamp(42px, 5vw, 72px);
-    line-height: 0.88;
+    font-size: clamp(22px, 2.3vw, 32px);
+    line-height: 0.94;
     letter-spacing: 0;
-    margin: 10px 0 14px;
-    max-width: 880px;
+    margin: 6px 0 8px;
+    max-width: none;
   }
 
   .mission-card p {
     color: var(--muted);
-    max-width: 760px;
-    font-size: 15px;
+    max-width: 620px;
+    font-size: 11px;
     margin: 0;
   }
 
   .signal-row {
-    display: flex;
+    display: none;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 18px;
+    gap: 6px;
+    margin-top: 12px;
   }
 
   .signal-pill {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     border: 1px solid var(--line);
     background: var(--panel-2);
     border-radius: var(--radius);
-    padding: 8px 10px;
+    padding: 6px 8px;
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text);
   }
 
   .radar-panel {
-    padding: 16px;
+    padding: 12px;
     background:
       radial-gradient(circle at 24% 28%, rgba(114, 168, 103, 0.2), transparent 34%),
       linear-gradient(180deg, #202721 0%, #161a16 100%);
@@ -589,7 +631,7 @@
 
   .radar-scope {
     position: relative;
-    width: 148px;
+    width: 112px;
     aspect-ratio: 1;
     border-radius: 999px;
     border: 2px solid rgba(203, 179, 111, 0.32);
@@ -635,24 +677,24 @@
   .summary-strip {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 9px;
+    gap: 7px;
   }
 
   .signal-tile {
     border: 1px solid rgba(201, 180, 122, 0.22);
     background: rgba(9, 10, 10, 0.28);
     border-radius: var(--radius);
-    padding: 10px;
-    min-height: 86px;
+    padding: 8px;
+    min-height: 62px;
   }
 
   .signal-tile strong {
     display: block;
     color: #f4e5ba;
     font-family: var(--serif);
-    font-size: 32px;
+    font-size: 26px;
     line-height: 0.95;
-    margin-top: 8px;
+    margin-top: 4px;
   }
 
   .signal-tile.alert {
@@ -693,10 +735,10 @@
   }
 
   .metric-value {
-    margin-top: 8px;
+    margin-top: 6px;
     font-family: var(--serif);
     color: var(--text-strong);
-    font-size: 30px;
+    font-size: 22px;
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
@@ -713,14 +755,14 @@
     grid-template-columns: 1fr auto;
     gap: 12px;
     align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
 
   .triage-strip,
   .filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
 
   .filter-btn.active {
@@ -733,12 +775,12 @@
     display: inline-flex;
     align-items: center;
     gap: 9px;
-    padding: 9px 12px;
+    padding: 7px 10px;
     border: 1px solid var(--line);
     background: var(--panel);
     color: var(--text);
     border-radius: var(--radius);
-    min-height: 40px;
+    min-height: 36px;
   }
 
   .triage-btn.active {
@@ -748,7 +790,7 @@
 
   .triage-count {
     font-family: var(--serif);
-    font-size: 19px;
+    font-size: 17px;
     color: var(--text-strong);
     line-height: 1;
   }
@@ -769,8 +811,8 @@
 
   .workspace {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
-    gap: 18px;
+    grid-template-columns: 1fr;
+    gap: 10px;
     align-items: start;
   }
 
@@ -778,7 +820,7 @@
   .inspector,
   .commits-panel,
   .source-panel {
-    padding: 16px;
+    padding: 12px;
   }
 
   .panel-head {
@@ -786,7 +828,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   .panel-title {
@@ -799,7 +841,7 @@
   .agents-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
   }
 
   .agent-card {
@@ -807,7 +849,7 @@
     border-left: 4px solid var(--line);
     background: var(--panel-2);
     border-radius: var(--radius);
-    padding: 14px;
+    padding: 12px;
     text-align: left;
     color: var(--text);
     min-width: 0;
@@ -895,15 +937,19 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 10px;
+    margin-top: 8px;
   }
 
   .checkpoint-row {
-    margin-top: 10px;
-    padding: 9px 10px;
+    margin-top: 8px;
+    padding: 8px 9px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: color-mix(in srgb, var(--panel) 86%, transparent);
+  }
+
+  .checkpoint-row.compact {
+    padding: 7px 8px;
   }
 
   .checkpoint-head {
@@ -949,10 +995,18 @@
   }
 
   .checkpoint-note {
-    margin-top: 7px;
+    margin-top: 5px;
     font-size: 12px;
     color: var(--muted);
     line-height: 1.35;
+  }
+
+  .checkpoint-row.compact .checkpoint-note {
+    display: none;
+  }
+
+  .checkpoint-row.compact .checkpoint-track {
+    margin-top: 5px;
   }
 
   .time-chip {
@@ -963,59 +1017,55 @@
   }
 
   .goal-box {
-    margin-top: 12px;
-    padding: 10px;
+    margin-top: 8px;
+    padding: 8px 9px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: color-mix(in srgb, var(--panel) 82%, transparent);
   }
 
   .goal-text {
-    margin-top: 4px;
-    font-size: 13px;
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .goal-line {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+  }
+
+  .goal-line-text {
+    font-size: 12px;
+    line-height: 1.35;
     color: var(--text);
     overflow-wrap: anywhere;
   }
 
-  .now-box {
-    margin-top: 12px;
-    padding: 12px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--panel);
-  }
-
-  .now-box.alert {
-    border-color: rgba(200, 55, 50, 0.42);
-    background: rgba(200, 55, 50, 0.08);
-  }
-
-  .now-copy {
-    margin-top: 4px;
-    color: var(--text-strong);
-    font-size: 15px;
-    line-height: 1.35;
-  }
-
   .activity-list {
-    margin-top: 12px;
+    margin-top: 9px;
     display: grid;
-    gap: 8px;
+    gap: 6px;
   }
 
   .activity {
     display: grid;
-    grid-template-columns: 58px 16px minmax(0, 1fr);
-    gap: 8px;
+    grid-template-columns: 46px 14px minmax(0, 1fr);
+    gap: 6px;
     align-items: start;
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .activity time {
     color: var(--muted);
     font-family: var(--mono);
     text-align: right;
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .activity i {
@@ -1027,6 +1077,10 @@
   .activity .normal { color: var(--muted); }
   .activity .milestone { color: var(--green); }
   .activity .problem { color: var(--red); }
+  .activity.lead .activity-text {
+    color: var(--text-strong);
+    font-weight: 600;
+  }
   .activity-text {
     overflow-wrap: anywhere;
   }
@@ -1036,7 +1090,7 @@
     grid-template-columns: 1fr auto;
     gap: 10px;
     align-items: center;
-    margin-top: 14px;
+    margin-top: 8px;
   }
 
   .spark {
@@ -1062,10 +1116,10 @@
     background: var(--panel);
     color: var(--text);
     border-radius: var(--radius);
-    padding: 7px 9px;
+    padding: 6px 8px;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     font-size: 12px;
   }
 
@@ -1075,9 +1129,10 @@
 
   .right-rail {
     display: grid;
-    gap: 14px;
-    position: sticky;
-    top: 16px;
+    grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(240px, 0.65fr));
+    gap: 10px;
+    position: static;
+    top: auto;
   }
 
   .inspector-empty {
@@ -1304,8 +1359,8 @@
     grid-template-columns: minmax(220px, 1fr) minmax(360px, auto);
     gap: 18px;
     align-items: center;
-    min-height: 82px;
-    padding: 10px 24px;
+    min-height: 58px;
+    padding: 6px 18px;
     background: var(--footer);
     border-top: 1px solid var(--line);
     backdrop-filter: blur(12px);
@@ -1315,39 +1370,39 @@
     display: block;
     color: var(--text-strong);
     font-family: var(--serif);
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1.05;
   }
 
   .portfolio-note span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .portfolio-card {
     justify-self: end;
     display: grid;
     grid-template-columns: auto auto;
-    gap: 14px;
+    gap: 10px;
     align-items: center;
     border: 1px solid var(--line-strong);
     background: var(--panel);
     border-radius: var(--radius);
-    padding: 10px 12px;
+    padding: 8px 10px;
     box-shadow: 0 0 22px var(--amber-glow);
   }
 
   .signature strong {
     display: block;
     font-family: var(--serif);
-    font-size: 22px;
+    font-size: 18px;
     color: var(--text-strong);
     line-height: 1;
   }
 
   .signature span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .contact-links {
@@ -1362,12 +1417,12 @@
     border: 1px solid var(--line);
     background: var(--panel);
     border-radius: var(--radius);
-    padding: 9px 11px;
+    padding: 7px 10px;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 38px;
+    min-height: 34px;
   }
 
   .contact-links a:hover {
@@ -1458,10 +1513,10 @@
     <div class="mission-card">
       <div class="wedge-label"><i class="icon" data-lucide="tower-control"></i><span>Live agent traffic</span></div>
       <h2>Watch what your agents do. Catch them if they go dark.</h2>
-      <p>Plain-English pulses turn parallel coding work into something you can actually supervise. Four live lanes stay visible, cost stays attached, and the stalled run gets escalated fast.</p>
+      <p>Hook-enforced plain-English pulses keep four live lanes visible, with cost attached and stalled work easy to rescue.</p>
       <div class="signal-row">
-        <span class="signal-pill"><i class="icon" data-lucide="radio"></i>Live pulses</span>
-        <span class="signal-pill"><i class="icon" data-lucide="receipt-text"></i>Token + cost per lane</span>
+        <span class="signal-pill"><i class="icon" data-lucide="radio"></i>Hook-enforced pulses</span>
+        <span class="signal-pill"><i class="icon" data-lucide="receipt-text"></i>Cost per lane</span>
         <span class="signal-pill"><i class="icon" data-lucide="siren"></i>Supervisor rescue</span>
       </div>
     </div>
@@ -1473,7 +1528,6 @@
           <div class="radar-title">Control Tower</div>
           <div class="radar-subtitle">Live traffic. Live pulses. Live progress.</div>
         </div>
-        <button class="theme-btn" type="button" aria-hidden="true" tabindex="-1"><i class="icon" data-lucide="moon"></i><span>Night</span></button>
       </div>
       <div class="radar-grid">
         <div class="radar-scope" aria-hidden="true">
@@ -1487,22 +1541,18 @@
           <div class="signal-tile">
             <div class="metric-caption">Working</div>
             <strong id="band-working">0</strong>
-            <div class="metric-caption">live lanes</div>
           </div>
           <div class="signal-tile alert">
             <div class="metric-caption">Needs Supervisor</div>
             <strong id="band-attention">0</strong>
-            <div class="metric-caption">intervention now</div>
           </div>
           <div class="signal-tile">
             <div class="metric-caption">Tokens 24h</div>
             <strong id="band-tokens">--</strong>
-            <div class="metric-caption">rolling total</div>
           </div>
           <div class="signal-tile">
             <div class="metric-caption">Cost 24h</div>
             <strong id="band-cost">--</strong>
-            <div class="metric-caption">rolling total</div>
           </div>
         </div>
       </div>
@@ -1510,20 +1560,24 @@
   </section>
 
   <section class="overview" aria-label="Run health">
-    <div class="health">
-      <div class="health-top">
-        <div class="nixie-number" id="overview-number">0/0</div>
-        <div class="health-copy" id="overview-copy">Waiting for the first agent pulse.</div>
+    <div class="health health-ribbon">
+      <div class="health-ribbon-main">
+        <div class="health-top">
+          <div class="nixie-number" id="overview-number">0/0</div>
+          <div class="health-copy" id="overview-copy">Waiting for the first agent pulse.</div>
+        </div>
+        <div class="progress-track" aria-label="Completion progress">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
       </div>
-      <div class="progress-track" aria-label="Completion progress">
-        <div class="progress-fill" id="progress-fill"></div>
+      <div class="overview-pills">
+        <div class="overview-pill danger"><div class="metric-label">Needs Supervisor</div><strong id="metric-attention">0</strong></div>
+        <div class="overview-pill"><div class="metric-label">Working</div><strong id="metric-working">0</strong></div>
+        <div class="overview-pill"><div class="metric-label">Commits</div><strong id="metric-commits">0</strong></div>
+        <div class="overview-pill"><div class="metric-label">Cost</div><strong id="metric-cost">--</strong></div>
+        <div class="overview-pill"><div class="metric-label">Tokens</div><strong id="metric-tokens">--</strong></div>
       </div>
     </div>
-    <div class="metric danger"><div class="metric-label">Needs Supervisor</div><div class="metric-value" id="metric-attention">0</div></div>
-    <div class="metric"><div class="metric-label">Working</div><div class="metric-value" id="metric-working">0</div></div>
-    <div class="metric"><div class="metric-label">Commits</div><div class="metric-value" id="metric-commits">0</div></div>
-    <div class="metric"><div class="metric-label">Cost</div><div class="metric-value" id="metric-cost">--</div></div>
-    <div class="metric"><div class="metric-label">Tokens</div><div class="metric-value" id="metric-tokens">--</div></div>
   </section>
 
   <section class="controls" aria-label="Dashboard filters">
@@ -1841,13 +1895,14 @@
     return '$' + Number(value).toFixed(2);
   }
 
-  function renderCheckpoint(agent, tone) {
+  function renderCheckpoint(agent, tone, compact) {
     const progress = agent.progress;
+    const compactClass = compact ? ' compact' : '';
     if (!progress) {
-      return '<div class="checkpoint-row"><div class="checkpoint-head"><span class="card-label">Checkpoint progress</span><span class="checkpoint-count">Plan pending</span><span class="checkpoint-pct">--</span></div><div class="checkpoint-track"><div class="checkpoint-fill pending" style="width:8%"></div></div><div class="checkpoint-note">This agent has not emitted a checkpoint plan yet.</div></div>';
+      return '<div class="checkpoint-row' + compactClass + '"><div class="checkpoint-head"><span class="card-label">Checkpoint progress</span><span class="checkpoint-count">Plan pending</span><span class="checkpoint-pct">--</span></div><div class="checkpoint-track"><div class="checkpoint-fill pending" style="width:8%"></div></div><div class="checkpoint-note">This agent has not emitted a checkpoint plan yet.</div></div>';
     }
     const fillClass = tone === 'attention' ? 'checkpoint-fill attention' : 'checkpoint-fill';
-    return '<div class="checkpoint-row"><div class="checkpoint-head"><span class="card-label">Checkpoint progress</span><span class="checkpoint-count">' + escapeHtml(progress.summary) + '</span><span class="checkpoint-pct">' + escapeHtml(String(progress.pct)) + '%</span></div><div class="checkpoint-track"><div class="' + fillClass + '" style="width:' + escapeHtml(String(progress.pct)) + '%"></div></div><div class="checkpoint-note">' + escapeHtml(progress.label) + '</div></div>';
+    return '<div class="checkpoint-row' + compactClass + '"><div class="checkpoint-head"><span class="card-label">Checkpoint progress</span><span class="checkpoint-count">' + escapeHtml(progress.summary) + '</span><span class="checkpoint-pct">' + escapeHtml(String(progress.pct)) + '%</span></div><div class="checkpoint-track"><div class="' + fillClass + '" style="width:' + escapeHtml(String(progress.pct)) + '%"></div></div><div class="checkpoint-note">' + escapeHtml(progress.label) + '</div></div>';
   }
 
   function latestEvent(agent) {
@@ -1977,13 +2032,13 @@
     });
   }
 
-  function renderActivity(event, now) {
+  function renderActivity(event, now, lead) {
     const icon = event.kind === 'problem'
       ? 'alert-triangle'
       : event.kind === 'milestone'
         ? 'check-circle-2'
         : 'circle';
-    return '<div class="activity">'
+    return '<div class="activity' + (lead ? ' lead' : '') + '">'
       + '<time>' + relTime(event.ms, now) + '</time>'
       + '<span class="' + event.kind + '"><i data-lucide="' + icon + '"></i></span>'
       + '<div class="activity-text">' + escapeHtml(event.text) + '</div>'
@@ -2015,10 +2070,12 @@
       const selected = key === selectedKey ? ' selected' : '';
       const triage = triageOf(agent);
       const cardClass = triage === 'attention' ? 'problem' : agent.state;
-      const lead = latestEvent(agent);
-      const recent = (agent.events || []).slice(1, 4).map((event) => renderActivity(event, state.now)).join('');
+      const recentEvents = (agent.events || []).slice(0, 3);
+      const recent = recentEvents.length
+        ? recentEvents.map((event, index) => renderActivity(event, state.now, index === 0)).join('')
+        : '<div class="activity lead"><time>now</time><span class="normal"><i data-lucide="circle"></i></span><div class="activity-text">' + escapeHtml(agent.goal) + '</div></div>';
       const usage = '<div class="usage-row"><span class="badge">Tokens ' + escapeHtml(formatTokens(agent.tokens || 0)) + '</span><span class="badge">Cost ' + escapeHtml(formatCost(agent.costUsd || 0)) + '</span></div>';
-      const checkpoint = renderCheckpoint(agent, triage);
+      const checkpoint = renderCheckpoint(agent, triage, true);
       return '<button type="button" class="agent-card ' + cardClass + selected + '" data-agent="' + escapeHtml(key) + '">'
         + '<div class="agent-head">'
         + '<div><div class="agent-name">' + escapeHtml(agent.task) + '</div>'
@@ -2029,11 +2086,10 @@
         + '</div></div>'
         + '<div class="time-chip">' + relTime(agent.lastEmitMs, state.now) + '</div>'
         + '</div>'
-        + '<div class="now-box ' + (triage === 'attention' ? 'alert' : '') + '"><div class="card-label">Right now</div><div class="now-copy">' + escapeHtml(lead ? lead.text : agent.goal) + '</div></div>'
-        + '<div class="goal-box"><div class="card-label">Goal</div><div class="goal-text">' + escapeHtml(agent.goal) + '</div></div>'
+        + '<div class="goal-line"><span class="card-label">Goal</span><div class="goal-line-text">' + escapeHtml(agent.goal) + '</div></div>'
         + usage
         + checkpoint
-        + '<div class="activity-list">' + recent + '</div>'
+        + '<div class="activity-list"><div class="section-label">Last 3 actions</div>' + recent + '</div>'
         + '<div class="card-foot">' + renderSpark(agent)
         + (triage === 'attention'
           ? '<span class="mini-action"><i class="icon" data-lucide="scan-search"></i>Inspect</span>'
