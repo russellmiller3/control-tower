@@ -18,9 +18,26 @@ Append one line per event. Format:
 
 The watcher reads the literal `Goal:` prefix as the highest-priority signal and displays it at the top of the agent's section. Without an orchestrator-emitted Goal pulse, agents' own jargon-laden first pulse leaks into the Goal slot and Russell sees gibberish.
 
+**CHECKPOINT RULE:** every background agent must emit a checkpoint plan before
+real work starts, then emit checkpoint progress as it clears those steps.
+
+```
+[<ISO-timestamp>] [<TASK NAME>] Agent: Plan: 4 checkpoints - parser cases, Windows paths, smoke test, docs.
+[<ISO-timestamp>] [<TASK NAME>] Agent: Progress: 1/4 - Wrote the failing malformed-config test.
+[<ISO-timestamp>] [<TASK NAME>] Agent: Progress: 2/4 - Parser cases are green and Windows path checks are passing.
+```
+
+The dashboard treats this as **checkpoint progress**, not omniscient truth.
+It means "how much of the declared plan is done," which is honest and useful.
+If the work changes shape, emit a new `Plan:` line and keep going from the new
+truth.
+
 - `<ISO-timestamp>` — `new Date().toISOString()`, looks like `2026-05-13T15:34:08Z`
 - `<TASK NAME>` — the phase or epic the agent is working on. Examples: `Phase 3`, `Phase 5.5`, `Import keyword rename`, `Lenat-clear Phase 8`.
 - Plain English status — what the agent is actively DOING, in 14-year-old language. No tool names, no file paths unless they aid understanding, no jargon. Past + present + next-step.
+- Checkpoint plan — break the goal into **3-7 concrete checkpoints**. Not
+  generic filler unless that is genuinely the task.
+- Checkpoint progress — `Progress: current/total - what just cleared`.
 
 ## PLAIN ENGLISH — non-negotiable (Russell's rule, 2026-05-13)
 
@@ -39,9 +56,12 @@ Pulse events go straight to a dashboard Russell reads ambient. He has ADHD + Mit
 
 ```
 [2026-05-13T15:30:11Z] [Phase 3] Agent: Looking at the existing approval prompt code so I can extend it for graduation.
+[2026-05-13T15:31:02Z] [Phase 3] Agent: Plan: 4 checkpoints - understand the existing flow, write the failing test, make the change, prove it end to end.
 [2026-05-13T15:34:08Z] [Phase 3] Agent: Wrote the failing test — first 3 calls ask the user, 4th auto-runs. Implementing now.
+[2026-05-13T15:34:09Z] [Phase 3] Agent: Progress: 1/4 - Wrote the failing test for the approval counter.
 [2026-05-13T15:36:42Z] [Phase 3] Agent: Hit a bug — the counter went up on rejections too. Rolling back to fix it.
 [2026-05-13T15:38:15Z] [Phase 3] Agent: First cycle green. 5 new tests. Starting on the compiler side next.
+[2026-05-13T15:38:16Z] [Phase 3] Agent: Progress: 2/4 - The compiler side is green now.
 [2026-05-13T15:42:01Z] [Phase 3] Agent: Blocked — the new audit shape conflicts with the existing approval-queue audit. Going with two separate tables.
 ```
 
@@ -52,6 +72,8 @@ Pulse events go straight to a dashboard Russell reads ambient. He has ADHD + Mit
 [Phase 3] Agent: parseHumanConfirm() now accepts graduation metadata via _grade flag                   # function names, jargon-heavy
 [Phase 3] Agent: 3.2 + 3.3 + 3.5 emit done — pre-commit blocked by 3.4 validator failures             # cycle numbers as the message
 [Phase 3] Agent: working                                                                                # useless
+[Phase 3] Agent: Plan: 12 checkpoints - think, code, more code, more code, more code                  # too many vague checkpoints
+[Phase 3] Agent: Progress: 80%                                                                          # guessed percent, not declared checkpoints
 [Phase 3] Agent: _askAI lives at compiler.js:598 (JS Node), _askAI_workers at 1041, _askAIStream at 708 # function names + file paths + line numbers
 [Phase 3] Agent: Baseline check done — 3109 pass, 11 fail. Starting cycle 6.1 parser for 'ai provider' # stat-line goal extracted as headline
 [Phase 3] Agent: Surveyed compiler — _askAI lives at compiler.js:598. Next: find Python ask_ai helper   # file paths + function names
@@ -71,8 +93,10 @@ Pulse events go straight to a dashboard Russell reads ambient. He has ADHD + Mit
 
 ## When to emit
 
+- **Before real work starts** — emit `Plan: N checkpoints - ...`
 - **At start of each TDD cycle** ("Starting cycle X.N — about to write the failing test for Y.")
 - **After each commit** ("X.N green. <test count delta>. Moving to X.N+1.")
+- **Whenever a checkpoint clears** — emit `Progress: current/total - ...`
 - **At any branch in reasoning** — when you hit a fork ("Two ways to handle this. Going with B because Z.").
 - **When you hit a problem** — describe the problem and the fix. ("Hit X failure. Cause is Y. Rolling back the bad commit and trying Z.")
 - **When you're blocked** — describe the blocker + what you tried + what would unblock you.

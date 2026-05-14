@@ -181,16 +181,21 @@ function main() {
     //   - "[TASK NAME] Agent:" (the format itself, included as example)
     // An OPT-OUT marker lets Claude bypass for genuinely-don't-need-pulses tasks:
     //   - "NO_PULSE_CONTRACT" anywhere in the prompt
-    const hasContract = /AGENT-PULSE-CONTRACT|agent-pulse\.log|pulse[- ]?contract|emit[ -](?:a |the )?pulse|emit pulses|\[TASK NAME\]|\[Phase \d|narrative pulse/i.test(prompt);
+    const hasPulseContract = /AGENT-PULSE-CONTRACT|agent-pulse\.log|pulse[- ]?contract|emit[ -](?:a |the )?pulse|emit pulses|\[TASK NAME\]|\[Phase \d|narrative pulse/i.test(prompt);
+    const hasCheckpointContract = /Plan:|Progress:|checkpoint(?:s)?|3-7 concrete checkpoints|break .*goal .*checkpoints/i.test(prompt);
     const explicitOptOut = /NO_PULSE_CONTRACT/i.test(prompt);
 
-    if (!hasContract && !explicitOptOut) {
-      const reason = `Agent spawn BLOCKED — the brief for "${description}" is missing the pulse-emission contract.
+    if ((!hasPulseContract || !hasCheckpointContract) && !explicitOptOut) {
+      const reason = `Agent spawn BLOCKED — the brief for "${description}" is missing the checkpoint pulse contract.
 
 Russell's rule (added 2026-05-13): every background agent must emit plain-English narrative progress events to programming/.claude/state/agent-pulse.log so he sees what they're doing without polling git or asking "?".
 
 Fix one of two ways:
-1. (Preferred) Add a pulse-emission section to the brief. Reference C:/Users/rmill/Desktop/programming/.claude/state/AGENT-PULSE-CONTRACT.md and tell the agent: "Emit narrative pulses to programming/.claude/state/agent-pulse.log in the format [Task Name] Agent: <plain English status>. Cadence: every 2-3 tool calls or every commit."
+1. (Preferred) Add a checkpoint pulse section to the brief. Reference C:/Users/rmill/Desktop/programming/.claude/state/AGENT-PULSE-CONTRACT.md and tell the agent:
+   - emit a plain-English Goal pulse first
+   - emit a Plan: N checkpoints - ... pulse before real work starts
+   - break the goal into 3-7 concrete checkpoints
+   - emit Progress: current/total - ... each time a checkpoint clears
 2. If this agent genuinely doesn't need pulses (read-only / one-shot / under-30-second job), add the marker NO_PULSE_CONTRACT anywhere in the prompt.
 
 Re-attempt the Agent spawn with the contract included.`;

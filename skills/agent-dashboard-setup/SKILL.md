@@ -8,6 +8,7 @@ dashboard setup.
 
 - The Control Tower web server at `http://127.0.0.1:9999`.
 - Five Claude Code hooks that make agents emit plain-English progress pulses.
+- Hook-enforced checkpoint plans and `current/total` progress pulses per agent.
 - A shared pulse log at `~/.claude/state/agent-pulse.log`.
 - A Windows desktop + taskbar shortcut named `Control Tower`.
 
@@ -83,6 +84,7 @@ The demo must show:
 - Hook-enforced updates.
 - Three working agents.
 - One agent needing rescue.
+- Checkpoint progress on each visible agent tile.
 - Tokens and cost per agent.
 - Russell Miller contact details in the lower-right footer.
 - The Control Tower icon in the browser tab.

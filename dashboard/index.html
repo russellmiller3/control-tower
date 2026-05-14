@@ -898,6 +898,63 @@
     margin-top: 10px;
   }
 
+  .checkpoint-row {
+    margin-top: 10px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--panel) 86%, transparent);
+  }
+
+  .checkpoint-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: baseline;
+  }
+
+  .checkpoint-count,
+  .checkpoint-pct {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-strong);
+    white-space: nowrap;
+  }
+
+  .checkpoint-pct {
+    color: var(--muted);
+  }
+
+  .checkpoint-track {
+    margin-top: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--panel-3);
+    overflow: hidden;
+  }
+
+  .checkpoint-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--blue), var(--green));
+    border-radius: 999px;
+  }
+
+  .checkpoint-fill.attention {
+    background: linear-gradient(90deg, var(--yellow), var(--red));
+  }
+
+  .checkpoint-fill.pending {
+    background: linear-gradient(90deg, var(--line-strong), var(--muted));
+  }
+
+  .checkpoint-note {
+    margin-top: 7px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+
   .time-chip {
     font-family: var(--mono);
     color: var(--muted);
@@ -1672,6 +1729,7 @@
           sourceLabel: 'Codex',
           state: 'dormant',
           goal: 'Remove stale auth shim and prove login still works before merge.',
+          progress: { current: 1, total: 4, pct: 25, summary: '1/4 checkpoints', label: 'Replaced the stale shim. Login proof still needs to land.' },
           tokens: 18420,
           costUsd: 0.62,
           lastEmitMs: now - 48 * 60 * 1000,
@@ -1686,6 +1744,7 @@
           sourceLabel: 'Claude',
           state: 'working',
           goal: 'Add regression coverage for malformed config files.',
+          progress: { current: 2, total: 4, pct: 50, summary: '2/4 checkpoints', label: 'Parser cases are green and Windows path checks are passing.' },
           tokens: 22600,
           costUsd: 0.71,
           lastEmitMs: now - 50 * 1000,
@@ -1700,6 +1759,7 @@
           sourceLabel: 'Local',
           state: 'working',
           goal: 'Update README screenshots and explain the rescue workflow.',
+          progress: { current: 2, total: 3, pct: 67, summary: '2/3 checkpoints', label: 'Screenshots are in. Install notes are getting tightened now.' },
           tokens: 9700,
           costUsd: 0.28,
           lastEmitMs: now - 65 * 1000,
@@ -1714,6 +1774,7 @@
           sourceLabel: 'Codex',
           state: 'working',
           goal: 'Verify the dashboard still works on Windows before pushing main.',
+          progress: { current: 3, total: 4, pct: 75, summary: '3/4 checkpoints', label: 'Smoke checks are green. Shortcut and taskbar verification are almost done.' },
           tokens: 17700,
           costUsd: 0.56,
           lastEmitMs: now - 25 * 1000,
@@ -1778,6 +1839,15 @@
   function formatCost(value) {
     if (!value) return '$0.00';
     return '$' + Number(value).toFixed(2);
+  }
+
+  function renderCheckpoint(agent, tone) {
+    const progress = agent.progress;
+    if (!progress) {
+      return '<div class="checkpoint-row"><div class="checkpoint-head"><span class="card-label">Checkpoint progress</span><span class="checkpoint-count">Plan pending</span><span class="checkpoint-pct">--</span></div><div class="checkpoint-track"><div class="checkpoint-fill pending" style="width:8%"></div></div><div class="checkpoint-note">This agent has not emitted a checkpoint plan yet.</div></div>';
+    }
+    const fillClass = tone === 'attention' ? 'checkpoint-fill attention' : 'checkpoint-fill';
+    return '<div class="checkpoint-row"><div class="checkpoint-head"><span class="card-label">Checkpoint progress</span><span class="checkpoint-count">' + escapeHtml(progress.summary) + '</span><span class="checkpoint-pct">' + escapeHtml(String(progress.pct)) + '%</span></div><div class="checkpoint-track"><div class="' + fillClass + '" style="width:' + escapeHtml(String(progress.pct)) + '%"></div></div><div class="checkpoint-note">' + escapeHtml(progress.label) + '</div></div>';
   }
 
   function latestEvent(agent) {
@@ -1948,6 +2018,7 @@
       const lead = latestEvent(agent);
       const recent = (agent.events || []).slice(1, 4).map((event) => renderActivity(event, state.now)).join('');
       const usage = '<div class="usage-row"><span class="badge">Tokens ' + escapeHtml(formatTokens(agent.tokens || 0)) + '</span><span class="badge">Cost ' + escapeHtml(formatCost(agent.costUsd || 0)) + '</span></div>';
+      const checkpoint = renderCheckpoint(agent, triage);
       return '<button type="button" class="agent-card ' + cardClass + selected + '" data-agent="' + escapeHtml(key) + '">'
         + '<div class="agent-head">'
         + '<div><div class="agent-name">' + escapeHtml(agent.task) + '</div>'
@@ -1961,6 +2032,7 @@
         + '<div class="now-box ' + (triage === 'attention' ? 'alert' : '') + '"><div class="card-label">Right now</div><div class="now-copy">' + escapeHtml(lead ? lead.text : agent.goal) + '</div></div>'
         + '<div class="goal-box"><div class="card-label">Goal</div><div class="goal-text">' + escapeHtml(agent.goal) + '</div></div>'
         + usage
+        + checkpoint
         + '<div class="activity-list">' + recent + '</div>'
         + '<div class="card-foot">' + renderSpark(agent)
         + (triage === 'attention'
@@ -2013,6 +2085,7 @@
       + '</div>'
       + '<div class="goal-box"><div class="card-label">Current goal</div><div class="goal-text">' + escapeHtml(agent.goal) + '</div></div>'
       + '<div class="usage-row"><span class="badge">Tokens ' + escapeHtml(formatTokens(agent.tokens || 0)) + '</span><span class="badge">Cost ' + escapeHtml(formatCost(agent.costUsd || 0)) + '</span></div>'
+      + renderCheckpoint(agent, triageOf(agent))
       + '<div class="diagnosis ' + diag.tone + '"><strong>' + escapeHtml(diag.title) + '</strong><span>' + escapeHtml(diag.body) + '</span></div>'
       + '<div class="detail-actions">'
       + '<button type="button" class="action-btn primary" id="detail-supervisor" data-reset-label="Ask Supervisor Agent"><i class="icon" data-lucide="scan-search"></i><span>Ask Supervisor Agent</span></button>'

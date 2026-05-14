@@ -47,10 +47,16 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   const codexState = path.join(home, '.codex', 'state');
   fs.mkdirSync(codexState, { recursive: true });
   const pulseLog = path.join(codexState, 'agent-pulse.log');
-  const iso = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+  const now = Date.now();
+  const iso = (offsetMs) => new Date(now + offsetMs).toISOString().replace(/\.\d{3}Z$/, 'Z');
   fs.writeFileSync(
     pulseLog,
-    `\ufeff[${iso}] [Phase 1] Agent: Goal: Rename imports safely so Windows Codex users can monitor the run. Tokens: 12,480. Cost: $0.42.\r\n`,
+    [
+      `\ufeff[${iso(0)}] [Phase 1] Agent: Goal: Rename imports safely so Windows Codex users can monitor the run. Tokens: 12,480. Cost: $0.42.`,
+      `[${iso(1000)}] [Phase 1] Agent: Plan: 4 checkpoints - parser cases, Windows paths, smoke check, docs.`,
+      `[${iso(2000)}] [Phase 1] Agent: Progress: 1/4 - Wrote the failing malformed config test.`,
+      `[${iso(3000)}] [Phase 1] Agent: Progress: 2/4 - Parser cases are green and Windows path checks are passing.`,
+    ].join('\r\n') + '\r\n',
     'utf8'
   );
 
@@ -77,6 +83,13 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   assert.match(state.agents[0].goal, /Rename imports safely so Windows Codex users can monitor the run/);
   assert.equal(state.agents[0].tokens, 12480);
   assert.equal(state.agents[0].costUsd, 0.42);
+  assert.deepEqual(state.agents[0].progress, {
+    current: 2,
+    total: 4,
+    pct: 50,
+    summary: '2/4 checkpoints',
+    label: 'Parser cases are green and Windows path checks are passing',
+  });
   assert.equal(state.tokensTotal, 12480);
   assert.equal(state.costUsdTotal, 0.42);
 
@@ -95,6 +108,8 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   assert.match(themedHtml, /<html lang="en" data-theme="light">/);
   assert.match(themedHtml, /Control Tower/);
   assert.match(themedHtml, /Agent traffic control for Codex and Claude/);
+  assert.match(themedHtml, /checkpoint-fill/);
+  assert.match(themedHtml, /Checkpoint progress/);
   assert.match(themedHtml, /Watch what your agents do\. Catch them if they go dark\./);
   assert.match(themedHtml, /Needs Supervisor/);
   assert.match(themedHtml, /Live Agent Traffic/);
@@ -110,6 +125,7 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   assert.match(themedHtml, /Auth cleanup/);
   assert.match(themedHtml, /state: 'dormant'/);
   assert.match(themedHtml, /3 agents are working/);
+  assert.match(themedHtml, /2\/4 checkpoints/);
 
   const icon = await fetch(`http://127.0.0.1:${port}/assets/control-tower.svg`);
   assert.equal(icon.status, 200);
@@ -152,4 +168,24 @@ test('ships a setup skill and one-click Windows installer', () => {
   const snippet = fs.readFileSync(path.join(ROOT, 'scripts', 'settings-snippet.json'), 'utf8');
   assert.match(snippet, /PostToolUse/);
   assert.match(snippet, /main-thread-pulse\.mjs/);
+});
+
+test('ships a checkpoint progress contract in hooks and setup docs', () => {
+  const contract = fs.readFileSync(path.join(ROOT, 'AGENT-PULSE-CONTRACT.md'), 'utf8');
+  assert.match(contract, /Plan:\s*4 checkpoints/i);
+  assert.match(contract, /Progress:\s*1\/4/i);
+  assert.match(contract, /checkpoints/i);
+
+  const setupPrompt = fs.readFileSync(path.join(ROOT, 'SETUP-PROMPT.md'), 'utf8');
+  assert.match(setupPrompt, /Plan:\s*<total checkpoints>/i);
+  assert.match(setupPrompt, /Progress:\s*<current>\/<total>/i);
+
+  const pulseHook = fs.readFileSync(path.join(ROOT, 'hooks', 'pulse-on-agent-activity.mjs'), 'utf8');
+  assert.match(pulseHook, /Plan:/);
+  assert.match(pulseHook, /Progress:/);
+  assert.match(pulseHook, /checkpoints/);
+
+  const stopHook = fs.readFileSync(path.join(ROOT, 'hooks', 'pulse-enforcer-subagent.mjs'), 'utf8');
+  assert.match(stopHook, /Progress:/);
+  assert.match(stopHook, /checkpoint/i);
 });

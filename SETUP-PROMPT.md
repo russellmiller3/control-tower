@@ -32,7 +32,18 @@ echo "[$ts] [<Task Name>] Agent: <status>" >> "$PULSE"
 
 Cadence: every 2-3 tool calls, after each commit, on any problem, and at end of phase.
 
-The `pulse-on-agent-activity` hook will block any Agent spawn whose prompt doesn't reference the pulse contract or `agent-pulse.log`. The `pulse-enforcer-subagent` hook will block the subagent's stop if it didn't emit at least one pulse during its run.
+The `pulse-on-agent-activity` hook will block any Agent spawn whose prompt doesn't reference the pulse contract, `agent-pulse.log`, and checkpoint progress. The `pulse-enforcer-subagent` hook will block the subagent's stop if it didn't emit at least one pulse during its run.
+
+Every background agent must also emit checkpoint signals:
+
+```text
+[<ISO timestamp>] [<Task Name>] Agent: Plan: <total checkpoints> - <3-7 concrete checkpoints in plain English>
+[<ISO timestamp>] [<Task Name>] Agent: Progress: <current>/<total> - <checkpoint that just cleared>
+```
+
+Do not guess percent complete. Break the goal into checkpoints first, then
+advance the checkpoint count as real work lands. If the work changes shape,
+emit a new `Plan:` line with the new checkpoint truth.
 
 ## 3. Plain English — non-negotiable
 
@@ -57,6 +68,12 @@ echo "[$ts] [<Task Name>] Agent: Goal: <one-sentence plain English statement of 
 ```
 
 The dashboard reads the literal `Goal:` prefix and displays it at the top of the agent's section. Without an orchestrator-emitted Goal, the agent's first jargon-laden pulse leaks into the Goal slot.
+
+## 4b. Agent emits checkpoint plans
+
+Before the agent does real work, it must emit a checkpoint plan in plain
+English. Ask it to break the goal into 3-7 concrete checkpoints, then emit
+`Progress:` lines as those checkpoints clear.
 
 ## 5. Parallel by default
 

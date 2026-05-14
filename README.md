@@ -8,8 +8,8 @@ Most agent dashboards can only show what agents happen to log. Control Tower
 ships the missing half: hooks that make agents emit plain-English updates in
 the first place.
 
-Those enforced updates power the useful parts: live agent status, stalled-agent
-rescue, and token/cost visibility per agent.
+Those enforced updates power the useful parts: live agent status, honest
+checkpoint progress, stalled-agent rescue, and token/cost visibility per agent.
 
 ![Control Tower preview](./preview-active-agents.png)
 
@@ -18,6 +18,7 @@ rescue, and token/cost visibility per agent.
 - **Hook-enforced web board at `localhost:9999`** - live agent cards, hook health, run health, and detail inspector.
 - **Five hook checks** - spawn isolation, pulse contract, stop enforcement, main-thread pulses, and parallel-work nudges.
 - **Supervisor Agent button** - writes a plain-English inspection request back to the right pulse log.
+- **Checkpoint progress per agent** - each agent declares 3-7 concrete checkpoints, then advances a visible `current/total` progress rail as real work lands.
 - **Tokens + cost per agent** - extracts usage from agent pulses and rolls it up on the dashboard.
 - **Rescue queue** - ranks agents that are silent, dormant, or showing problem signals.
 - **Codex + Claude source detection** - watches Windows-friendly `.codex` and `.claude` state paths automatically.
@@ -143,7 +144,7 @@ Give that skill to Claude or Codex when you want the agent to:
 - Create the Windows desktop + taskbar shortcut
 - Launch the dashboard
 - Verify the demo preview
-- Confirm tokens, costs, rescue, and footer contact details render
+- Confirm checkpoint progress, tokens, costs, rescue, and footer contact details render
 
 ### Use it with Codex, Claude Cowork, or other agent tools
 

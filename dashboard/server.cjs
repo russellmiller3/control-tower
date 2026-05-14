@@ -143,6 +143,8 @@ function parseEvents() {
 const COMPLETION_RE = /\b(all (\d+ )?(remaining )?cycles shipped|all (\d+ )?phases shipped|phase \w+ complete|final test count)/i;
 const MILESTONE_RE = /\b(shipped|GREEN|green\b|landed|committing|cycle \d+(\.\d+)? (green|done|complete))/i;
 const PROBLEM_RE = /\b(PROBLEM|failure|failed|crash|stalled|blocked|stuck|conflict|wiped|clobbered|API Error|no transcript growth)/i;
+const PLAN_RE = /^(?:Plan|Replan):\s*(\d+)\s+checkpoints?\s*[-:]\s*(.+)$/i;
+const PROGRESS_RE = /^Progress:\s*(\d+)\s*\/\s*(\d+)\s*[-:]\s*(.+)$/i;
 const TOKEN_RE = /\b(?:tokens?|tok)\b[^0-9]{0,16}([0-9][0-9,]*)|([0-9][0-9,]*)\s*(?:tokens?|tok)\b/gi;
 const COST_RE = /\b(?:cost|spent|usd)\b[^$0-9]{0,16}\$?\s*([0-9]+(?:\.[0-9]{1,4})?)|\$\s*([0-9]+(?:\.[0-9]{1,4})?)\s*(?:cost|spent|usd)?/gi;
 
@@ -166,6 +168,44 @@ function parseUsage(text) {
   }
 
   return { tokens, costUsd };
+}
+
+function cleanPulseText(text) {
+  return String(text || '').trim().replace(/\.+$/, '').trim();
+}
+
+function parseCheckpointProgress(events, state) {
+  let total = null;
+  let planLabel = '';
+  let current = null;
+  let progressLabel = '';
+
+  for (const event of [...events].reverse()) {
+    const planMatch = event.text.match(PLAN_RE);
+    if (planMatch) {
+      total = parseInt(planMatch[1], 10);
+      planLabel = cleanPulseText(planMatch[2]);
+    }
+    const progressMatch = event.text.match(PROGRESS_RE);
+    if (progressMatch) {
+      current = parseInt(progressMatch[1], 10);
+      total = parseInt(progressMatch[2], 10);
+      progressLabel = cleanPulseText(progressMatch[3]);
+    }
+  }
+
+  if (!Number.isFinite(total) || total <= 0) return null;
+  if (!Number.isFinite(current) || current < 0) current = 0;
+  if (state === 'completed') current = total;
+  current = Math.min(current, total);
+
+  return {
+    current,
+    total,
+    pct: Math.round((current / total) * 100),
+    summary: `${current}/${total} checkpoints`,
+    label: progressLabel || planLabel || 'Checkpoint signal pending.',
+  };
 }
 
 function buildState() {
@@ -214,6 +254,7 @@ function buildState() {
       if (usage.tokens !== null) tokens = Math.max(tokens || 0, usage.tokens);
       if (usage.costUsd !== null) costUsd = Math.max(costUsd || 0, usage.costUsd);
     }
+    const progress = parseCheckpointProgress(entry.events, state);
 
     agents.push({
       task: entry.task,
@@ -221,6 +262,7 @@ function buildState() {
       sourceLabel: entry.sourceLabel,
       state,
       goal,
+      progress,
       tokens,
       costUsd,
       lastEmitMs: last.ms,
