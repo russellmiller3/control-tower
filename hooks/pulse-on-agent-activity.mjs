@@ -32,33 +32,8 @@ import { homedir } from 'node:os';
 const PULSE_SCRIPT = resolve(homedir(), 'Desktop', 'programming', '.claude', 'state', 'pulse.cjs');
 const PULSE_LOG = resolve(homedir(), 'Desktop', 'programming', '.claude', 'state', 'agent-pulse.log');
 const STATE_FILE = resolve(homedir(), '.claude', 'state', 'last-pulse.json');
+const CLEAR_REPO = resolve(homedir(), 'Desktop', 'programming', 'clear');
 const HEARTBEAT_MS = 5 * 60 * 1000;
-
-/**
- * Find a git repo under the programming root that has commits — used to
- * detect "did a new commit land?" for pulse throttling. Generic: walks
- * sibling directories rather than hardcoding any one project.
- * Returns the most-recently-active repo path, or null.
- */
-function activeRepo() {
-  const root = resolve(homedir(), 'Desktop', 'programming');
-  if (!existsSync(root)) return null;
-  try {
-    const dirs = require('node:fs').readdirSync(root);
-    let best = null;
-    let bestMtime = 0;
-    for (const d of dirs) {
-      const repoDir = resolve(root, d);
-      const gitDir = resolve(repoDir, '.git');
-      if (!existsSync(gitDir)) continue;
-      try {
-        const m = require('node:fs').statSync(resolve(gitDir, 'HEAD')).mtimeMs;
-        if (m > bestMtime) { bestMtime = m; best = repoDir; }
-      } catch {}
-    }
-    return best;
-  } catch { return null; }
-}
 
 function runPulse() {
   if (!existsSync(PULSE_SCRIPT)) return null;
@@ -70,12 +45,8 @@ function runPulse() {
 }
 
 function currentTopSha() {
-  // Derive from current HEAD of the most-recently-active sibling repo.
-  // Generic — no specific branch or project hardcoded.
-  const repo = activeRepo();
-  if (!repo) return null;
-  const result = spawnSync('git', ['log', '-1', '--format=%H', 'HEAD'], {
-    cwd: repo,
+  const result = spawnSync('git', ['log', '-1', '--format=%H', 'feature/lenat-in-clear'], {
+    cwd: CLEAR_REPO,
     encoding: 'utf8',
     shell: false,
     timeout: 2000,
@@ -210,16 +181,21 @@ function main() {
     //   - "[TASK NAME] Agent:" (the format itself, included as example)
     // An OPT-OUT marker lets Claude bypass for genuinely-don't-need-pulses tasks:
     //   - "NO_PULSE_CONTRACT" anywhere in the prompt
-    const hasContract = /AGENT-PULSE-CONTRACT|agent-pulse\.log|pulse[- ]?contract|emit[ -](?:a |the )?pulse|emit pulses|\[TASK NAME\]|\[Phase \d|narrative pulse/i.test(prompt);
+    const hasPulseContract = /AGENT-PULSE-CONTRACT|agent-pulse\.log|pulse[- ]?contract|emit[ -](?:a |the )?pulse|emit pulses|\[TASK NAME\]|\[Phase \d|narrative pulse/i.test(prompt);
+    const hasCheckpointContract = /Plan:|Progress:|checkpoint(?:s)?|3-7 concrete checkpoints|break .*goal .*checkpoints/i.test(prompt);
     const explicitOptOut = /NO_PULSE_CONTRACT/i.test(prompt);
 
-    if (!hasContract && !explicitOptOut) {
-      const reason = `Agent spawn BLOCKED — the brief for "${description}" is missing the pulse-emission contract.
+    if ((!hasPulseContract || !hasCheckpointContract) && !explicitOptOut) {
+      const reason = `Agent spawn BLOCKED — the brief for "${description}" is missing the checkpoint pulse contract.
 
 Russell's rule (added 2026-05-13): every background agent must emit plain-English narrative progress events to programming/.claude/state/agent-pulse.log so he sees what they're doing without polling git or asking "?".
 
 Fix one of two ways:
-1. (Preferred) Add a pulse-emission section to the brief. Reference C:/Users/rmill/Desktop/programming/.claude/state/AGENT-PULSE-CONTRACT.md and tell the agent: "Emit narrative pulses to programming/.claude/state/agent-pulse.log in the format [Task Name] Agent: <plain English status>. Cadence: every 2-3 tool calls or every commit."
+1. (Preferred) Add a checkpoint pulse section to the brief. Reference C:/Users/rmill/Desktop/programming/.claude/state/AGENT-PULSE-CONTRACT.md and tell the agent:
+   - emit a plain-English Goal pulse first
+   - emit a Plan: N checkpoints - ... pulse before real work starts
+   - break the goal into 3-7 concrete checkpoints
+   - emit Progress: current/total - ... each time a checkpoint clears
 2. If this agent genuinely doesn't need pulses (read-only / one-shot / under-30-second job), add the marker NO_PULSE_CONTRACT anywhere in the prompt.
 
 Re-attempt the Agent spawn with the contract included.`;

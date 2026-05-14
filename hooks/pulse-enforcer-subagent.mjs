@@ -2,8 +2,8 @@
 /**
  * pulse-enforcer-subagent — fires inside background-agent sessions to
  * REFUSE the stop if the agent hasn't emitted any narrative pulse during
- * this run. Forces every subagent to drop at least one summary pulse
- * describing what it did before completion.
+ * this run. Forces every subagent to drop checkpoint-aware pulses before
+ * completion.
  *
  * Detection: subagents have a transcript_path under the temp directory
  * (Windows: %LOCALAPPDATA%\Temp\claude\.../tasks/<agent-id>.output).
@@ -11,7 +11,8 @@
  * when the path looks like a subagent.
  *
  * If the agent emitted at least one pulse in agent-pulse.log within the
- * last hour, allow stop. Otherwise block with a reminder.
+ * last hour, allow stop. Otherwise block with a reminder to emit Goal /
+ * Plan / Progress pulses.
  *
  * Russell's rule (added 2026-05-13): every background agent must emit
  * plain-English narrative progress events to agent-pulse.log so he sees
@@ -36,13 +37,13 @@ function isSubagentTranscript(transcriptPath) {
   return /\/tasks\//.test(normalized) && /\.output$/.test(normalized);
 }
 
-function pulseLogHasRecentEntry() {
+function pulseLogHasRecentCheckpointEntry() {
   if (!existsSync(PULSE_LOG)) return false;
   try {
     const stat = statSync(PULSE_LOG);
     if (Date.now() - stat.mtimeMs > RECENCY_MS) return false;
     const raw = readFileSync(PULSE_LOG, 'utf8');
-    return raw.trim().length > 0;
+    return /Agent:\s*(?:Plan|Replan|Progress):/i.test(raw);
   } catch {
     return false;
   }
@@ -75,19 +76,24 @@ function main() {
     return;
   }
 
-  if (pulseLogHasRecentEntry()) {
+  if (pulseLogHasRecentCheckpointEntry()) {
     process.exit(0);
     return;
   }
 
   // Block — agent hasn't emitted any pulse in this run
-  const reason = `STOP BLOCKED — you (the background subagent) did not emit a single narrative pulse during this run.
+  const reason = `STOP BLOCKED — you (the background subagent) did not emit a single narrative checkpoint pulse during this run.
 
 Russell's rule: every background agent must emit plain-English progress events to programming/.claude/state/agent-pulse.log so he sees what you did without polling git.
 
-Before completing, append at least one summary pulse describing what you accomplished + any red flags for follow-up work. Use this format:
+Before completing, append:
+1. a Plan: <total checkpoints> - ... pulse if you never emitted one
+2. a Progress: <current>/<total> - ... pulse describing the checkpoint you just cleared
 
-[<ISO timestamp>] [<TASK NAME from your brief>] Agent: <plain English summary of what you did, what tests landed, any open issues>
+Use this format:
+
+[<ISO timestamp>] [<TASK NAME from your brief>] Agent: Plan: 4 checkpoints - parser pass, implementation, smoke test, docs
+[<ISO timestamp>] [<TASK NAME from your brief>] Agent: Progress: 1/4 - Wrote the failing test and confirmed the bug
 
 How (bash):
   PULSE=/c/Users/rmill/Desktop/programming/.claude/state/agent-pulse.log

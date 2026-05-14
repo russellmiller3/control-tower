@@ -36,38 +36,11 @@ import { resolve, join } from 'node:path';
 import { homedir } from 'node:os';
 
 const PROGRAMMING = resolve(homedir(), 'Desktop', 'programming');
-// Queue file discovery: the global queue at <programming>/.claude/state/
-// PLUS any project that has its own <project>/.claude/state/priority-queue.md.
-// Generic — no project hardcoded. Sibling project queues get picked up
-// by `findProjectQueues()` below at scan time.
-const GLOBAL_QUEUE = resolve(PROGRAMMING, '.claude', 'state', 'priority-queue.md');
-function findProjectQueues() {
-  const queues = [GLOBAL_QUEUE];
-  if (!existsSync(PROGRAMMING)) return queues;
-  try {
-    for (const entry of readdirSync(PROGRAMMING)) {
-      const q = join(PROGRAMMING, entry, '.claude', 'state', 'priority-queue.md');
-      if (existsSync(q)) queues.push(q);
-    }
-  } catch {}
-  return queues;
-}
-// Plan-file discovery is now generic: walk every immediate child of
-// PROGRAMMING that has a `plans/` directory, take the most recently
-// modified `plan-*.md` file from any of them. No project-specific
-// hardcoding — works for Lenat, Clear, future projects, anything with
-// a plans/ convention.
-function findPlanDirs() {
-  const dirs = [];
-  if (!existsSync(PROGRAMMING)) return dirs;
-  try {
-    for (const entry of readdirSync(PROGRAMMING)) {
-      const planDir = join(PROGRAMMING, entry, 'plans');
-      if (existsSync(planDir)) dirs.push(planDir);
-    }
-  } catch {}
-  return dirs;
-}
+const QUEUE_PATHS = [
+  resolve(PROGRAMMING, '.claude', 'state', 'priority-queue.md'),
+  resolve(PROGRAMMING, 'clear', '.claude', 'state', 'priority-queue.md'),
+];
+const LENAT_PLANS_DIR = resolve(PROGRAMMING, 'Lenat', 'plans');
 
 function safeRead(p) {
   if (!existsSync(p)) return '';
@@ -95,19 +68,16 @@ function activeAgentCount(transcriptPath) {
 }
 
 function latestPlanFile() {
-  const candidates = [];
-  for (const planDir of findPlanDirs()) {
-    try {
-      const files = readdirSync(planDir).filter((f) => /^plan-.*\.md$/.test(f));
-      for (const f of files) {
-        const full = join(planDir, f);
-        try { candidates.push({ full, mtime: statSync(full).mtimeMs }); } catch {}
-      }
-    } catch {}
+  if (!existsSync(LENAT_PLANS_DIR)) return null;
+  try {
+    const files = readdirSync(LENAT_PLANS_DIR)
+      .filter((f) => /^plan-.*\.md$/.test(f))
+      .map((f) => ({ f, full: join(LENAT_PLANS_DIR, f), mtime: statSync(join(LENAT_PLANS_DIR, f)).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime);
+    return files[0]?.full || null;
+  } catch {
+    return null;
   }
-  if (candidates.length === 0) return null;
-  candidates.sort((a, b) => b.mtime - a.mtime);
-  return candidates[0].full;
 }
 
 const PULSE_LOG = resolve(PROGRAMMING, '.claude', 'state', 'agent-pulse.log');
@@ -136,7 +106,7 @@ function phasesInPulseLog() {
  */
 function unstartedParallelSafePhases() {
   const inFlightOrDone = phasesInPulseLog();
-  const sources = [...findProjectQueues(), latestPlanFile()].filter(Boolean);
+  const sources = [...QUEUE_PATHS, latestPlanFile()].filter(Boolean);
   const phases = new Set();
   for (const source of sources) {
     const text = safeRead(source);

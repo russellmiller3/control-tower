@@ -1,121 +1,75 @@
 #!/usr/bin/env node
-// =============================================================================
-// MAIN-THREAD PULSE — emit dashboard events from the main conversation
-// =============================================================================
-//
-// Russell flagged 2026-05-13: the agent dashboard at localhost:9999 was useless
-// when the main conversation was the one doing the work. The dashboard's pulse
-// hooks (worktree-on-agent-spawn, pulse-enforcer-subagent, etc.) only fire on
-// SUBAGENT events. When Claude works serially in-conversation, no pulses get
-// emitted — the dashboard sits empty even though real work is shipping.
-//
-// This hook fires on PostToolUse for code-changing tools (Edit, Write, Bash
-// when it commits/tests/builds) and appends a one-line pulse event to
-// ~/.claude/state/agent-pulse.log so the dashboard shows main-thread activity.
-//
-// The "task" name on the pulse is auto-derived: prefer the current branch name
-// of the cwd's git repo (e.g. "feature/lenat-in-clear"); fall back to the cwd
-// basename. That gives the dashboard a stable chip per epic/feature.
-//
-// PLAIN-ENGLISH RULE: the pulse text comes from the tool name + a heuristic
-// summary of what changed. Russell's rule "Agent Pulse Events Must Be Plain
-// English" means no file paths, no function names, no SHA in the headline.
-// The hook keeps it short: "Edited <surface in plain English>" or
-// "Committed <subject of commit message>" — never a raw file path.
-// =============================================================================
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
-import { resolve, dirname, basename } from 'node:path';
+/**
+ * Main-thread pulse hook.
+ *
+ * Claude Code hook event: PostToolUse on Bash/Edit/Write.
+ * Purpose: keep the dashboard alive even when the orchestrator, not a
+ * background agent, is doing the work.
+ *
+ * Fail-open: this hook should never block Claude Code.
+ */
+
+import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { homedir } from 'node:os';
 
-const PULSE_LOG = resolve(homedir(), 'Desktop/programming/.claude/state/agent-pulse.log');
+const DEFAULT_LOG = resolve(homedir(), '.claude', 'state', 'agent-pulse.log');
+const PULSE_LOG = process.env.AGENT_PULSE_LOG || DEFAULT_LOG;
 
-// Throttle: emit at most one pulse per N seconds per task to avoid flooding.
-// Adjustable; 15s is loose enough to capture rapid changes but tight enough
-// that a flurry of edits surfaces as a single "working on X" event.
-const THROTTLE_MS = 15 * 1000;
-const LAST_PULSE_PATH = resolve(homedir(), '.claude/state/last-main-pulse.json');
-
-function readJSON(p) {
-  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return {}; }
-}
-
-function writeJSON(p, obj) {
+function readEvent() {
   try {
-    mkdirSync(dirname(p), { recursive: true });
-    appendFileSync(p, '', { flag: 'a' });
-    require('node:fs').writeFileSync(p, JSON.stringify(obj));
-  } catch {}
-}
-
-function currentTaskName(cwd, filePath) {
-  // Prefer the git branch of the file being edited (more specific than cwd
-  // when cwd is a parent directory of multiple repos — e.g. ~/programming
-  // contains Clear, Lenat, Lenat-clear, each a separate repo).
-  const checkDir = filePath ? dirname(filePath) : cwd;
-  try {
-    const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: checkDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-    if (branch && branch !== 'HEAD') return branch;
-  } catch {}
-  // No git repo found above the file. Use "Main thread" rather than the cwd
-  // basename — "Main thread" is what Russell expects to see on the dashboard
-  // for non-repo work (CLAUDE.md edits, hook authoring, etc.).
-  return 'Main thread';
-}
-
-function shouldThrottle(task) {
-  const last = readJSON(LAST_PULSE_PATH);
-  const now = Date.now();
-  if (last[task] && (now - last[task]) < THROTTLE_MS) return true;
-  last[task] = now;
-  writeJSON(LAST_PULSE_PATH, last);
-  return false;
-}
-
-// Parse the hook event from stdin (Claude Code passes the tool-call payload).
-let input = '';
-process.stdin.on('data', (d) => (input += d));
-process.stdin.on('end', () => {
-  let payload = {};
-  try { payload = JSON.parse(input || '{}'); } catch {}
-  const toolName = payload.tool_name || '';
-  const toolInput = payload.tool_input || {};
-  const cwd = payload.cwd || process.cwd();
-
-  let summary = '';
-  if (toolName === 'Edit' || toolName === 'Write') {
-    const file = toolInput.file_path || '';
-    if (!file) return; // nothing to say
-    const fileBase = basename(file);
-    summary = `Edited ${fileBase}`;
-  } else if (toolName === 'Bash') {
-    const cmd = (toolInput.command || '').trim();
-    // Surface only meaningful bash events — commits, tests, builds.
-    if (/git\s+commit/.test(cmd)) {
-      const m = cmd.match(/-m\s+["']?([^"'\\n]{1,80})/);
-      summary = m ? `Committed: ${m[1].slice(0, 80)}` : 'Committed code';
-    } else if (/\b(npm|yarn|pnpm|bun)\s+test\b|\bvitest\b|\bjest\b|\bpytest\b|\.test\.(?:js|mjs|ts|py)\b/.test(cmd)) {
-      summary = 'Running test suite';
-    } else if (/\b(npm|yarn|pnpm|bun)\s+run\s+(build|bundle|compile)\b/.test(cmd)) {
-      const m = cmd.match(/run\s+(build|bundle|compile)/);
-      summary = `Ran ${m ? m[1] : 'build'}`;
-    } else {
-      return; // skip noisy bash (ls, cat, grep, etc.)
-    }
-  } else {
-    return;
+    return JSON.parse(readFileSync(0, 'utf8') || '{}');
+  } catch {
+    return null;
   }
+}
 
-  // Pass the file path so the task name reflects the repo being edited, not
-  // the parent cwd (which may be a directory containing several repos).
-  const filePathForTask = toolInput.file_path || (toolName === 'Bash' ? cwd : null);
-  const task = currentTaskName(cwd, filePathForTask);
-  if (shouldThrottle(task)) return;
+function clip(value, max = 140) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (text.length <= max) return text;
+  return text.slice(0, max - 3) + '...';
+}
 
-  const ts = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-  const line = `[${ts}] [${task}] Agent: ${summary}\n`;
-  try {
-    mkdirSync(dirname(PULSE_LOG), { recursive: true });
-    appendFileSync(PULSE_LOG, line);
-  } catch {}
-});
+function bashSummary(command) {
+  const text = clip(command);
+  if (!text) return 'Ran a shell command.';
+  if (/\bgit\s+commit\b/i.test(text)) return 'Committed progress to git.';
+  if (/\b(node\s+--test|npm\s+test|pnpm\s+test|yarn\s+test|pytest|cargo\s+test|go\s+test)\b/i.test(text)) {
+    return 'Ran the test suite.';
+  }
+  if (/\b(npm|pnpm|yarn)\s+run\s+build\b|\b(build|tsc)\b/i.test(text)) return 'Ran a build check.';
+  return `Ran: ${text}`;
+}
+
+function toolSummary(event) {
+  const toolName = event.tool_name || event.toolName || '';
+  const input = event.tool_input || event.toolInput || {};
+  if (toolName === 'Bash') return bashSummary(input.command);
+  if (toolName === 'Write') return `Wrote ${clip(input.file_path || input.path || 'a file')}.`;
+  if (toolName === 'Edit' || toolName === 'MultiEdit') return `Edited ${clip(input.file_path || input.path || 'a file')}.`;
+  return `Used ${clip(toolName || 'a tool')}.`;
+}
+
+function appendPulse(text) {
+  mkdirSync(dirname(PULSE_LOG), { recursive: true });
+  const stamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+  appendFileSync(PULSE_LOG, `[${stamp}] [Main thread] Agent: ${text}\n`, 'utf8');
+}
+
+function main() {
+  const event = readEvent();
+  if (!event) return;
+  const eventName = event.hook_event_name || event.hookEventName || '';
+  if (eventName !== 'PostToolUse') return;
+
+  const toolName = event.tool_name || event.toolName || '';
+  if (!/^(Bash|Edit|MultiEdit|Write)$/.test(toolName)) return;
+
+  appendPulse(toolSummary(event));
+}
+
+try {
+  main();
+} catch {
+  process.exit(0);
+}
