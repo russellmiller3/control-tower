@@ -183,6 +183,7 @@
   }
 
   .action-btn,
+  .tool-pill,
   .theme-btn,
   .filter-btn {
     display: inline-flex;
@@ -191,6 +192,10 @@
     gap: 8px;
     padding: 8px 12px;
     transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+
+  .tool-pill {
+    text-decoration: none;
   }
 
   .action-btn.primary {
@@ -523,124 +528,17 @@
 
   .mock-stack {
     display: grid;
-    grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
     margin-bottom: 10px;
   }
 
-  .tufte-tui,
   .dense-v4 {
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     min-width: 0;
-  }
-
-  .tufte-tui {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(190px, 0.34fr);
-    gap: 16px;
-    padding: 16px;
-  }
-
-  .tufte-heading {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 12px;
-    align-items: end;
-    margin-bottom: 12px;
-  }
-
-  .tufte-heading h2,
-  .dense-v4 h2 {
-    font-family: var(--serif);
-    color: var(--text-strong);
-    margin: 0;
-    letter-spacing: 0;
-    line-height: 0.98;
-  }
-
-  .tufte-heading h2 {
-    font-size: clamp(24px, 2.2vw, 36px);
-  }
-
-  .tufte-command {
-    border: 1px solid var(--line);
-    background: var(--panel-2);
-    border-radius: var(--radius);
-    padding: 8px 10px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-
-  .tufte-ledger {
-    display: grid;
-    gap: 7px;
-    font-family: var(--mono);
-  }
-
-  .tufte-row {
-    display: grid;
-    grid-template-columns: 34px minmax(130px, 0.52fr) minmax(70px, 0.18fr) minmax(86px, 0.18fr) minmax(0, 1fr);
-    gap: 9px;
-    align-items: start;
-    border-top: 1px solid var(--line);
-    padding-top: 7px;
-    font-size: 11px;
-    min-width: 0;
-  }
-
-  .tufte-row:first-child {
-    border-top: 0;
-    padding-top: 0;
-  }
-
-  .tufte-index,
-  .tufte-state,
-  .tufte-progress,
-  .tufte-note {
-    color: var(--muted);
-  }
-
-  .tufte-task {
-    color: var(--text-strong);
-    font-weight: 700;
-    overflow-wrap: anywhere;
-  }
-
-  .tufte-note {
-    overflow-wrap: anywhere;
-    line-height: 1.35;
-  }
-
-  .tufte-margin {
-    border-left: 1px solid var(--line);
-    padding-left: 14px;
-    display: grid;
-    align-content: start;
-    gap: 10px;
-  }
-
-  .margin-note {
-    border: 1px solid var(--line);
-    background: var(--panel-2);
-    border-radius: var(--radius);
-    padding: 9px;
-    font-family: var(--serif);
-    color: var(--text);
-    font-size: 13px;
-    line-height: 1.25;
-  }
-
-  .margin-note strong {
-    display: block;
-    color: var(--text-strong);
-    font-size: 22px;
-    line-height: 0.95;
-    margin-bottom: 4px;
   }
 
   .dense-v4 {
@@ -656,6 +554,11 @@
   }
 
   .dense-v4 h2 {
+    font-family: var(--serif);
+    color: var(--text-strong);
+    margin: 0;
+    letter-spacing: 0;
+    line-height: 0.98;
     font-size: clamp(22px, 2vw, 30px);
   }
 
@@ -1754,16 +1657,6 @@
     .right-rail {
       position: static;
     }
-    .tufte-tui {
-      grid-template-columns: 1fr;
-    }
-    .tufte-margin {
-      border-left: 0;
-      border-top: 1px solid var(--line);
-      padding-left: 0;
-      padding-top: 12px;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
   }
 
   @media (max-width: 780px) {
@@ -1779,7 +1672,6 @@
     .mission-card,
     .radar-panel,
     .health,
-    .tufte-tui,
     .dense-v4,
     .calm-version,
     footer.portfolio {
@@ -1788,7 +1680,6 @@
     }
     h1,
     .mission-card h2,
-    .tufte-heading h2,
     .dense-v4 h2,
     .calm-copy h2 {
       overflow-wrap: anywhere;
@@ -1822,19 +1713,13 @@
     .overview,
     .summary-strip,
     .agents-grid,
-    .tufte-margin,
     .secondary-actions {
       grid-template-columns: 1fr;
     }
-    .tufte-heading,
     .dense-head,
-    .tufte-row,
     .dense-lane,
     .calm-row {
       grid-template-columns: 1fr;
-    }
-    .tufte-command {
-      white-space: normal;
     }
     footer.portfolio {
       min-height: 156px;
@@ -1857,6 +1742,8 @@
     <div class="top-actions">
       <div class="meta-pill" title="Current branch"><i class="icon" data-lucide="git-branch"></i><span id="branch">loading</span></div>
       <div class="meta-pill" title="Latest commit"><i class="icon" data-lucide="git-commit-horizontal"></i><span id="head">loading</span></div>
+      <a class="tool-pill" href="/versions/dense-v4"><i class="icon" data-lucide="layout-dashboard"></i><span>Dense v4</span></a>
+      <a class="tool-pill" href="/versions/calm"><i class="icon" data-lucide="waves"></i><span>Calm</span></a>
       <button class="theme-btn" id="theme-toggle" type="button"><i class="icon" data-lucide="moon"></i><span>Night</span></button>
       <button class="action-btn primary" id="global-supervisor" type="button" data-reset-label="Ask Supervisor Agent"><i class="icon" data-lucide="scan-search"></i><span>Ask Supervisor Agent</span></button>
     </div>
@@ -1933,21 +1820,9 @@
     </div>
   </section>
 
-  <section class="mock-stack" aria-label="Wired dashboard mocks">
-    <section class="tufte-tui" id="tufte-tui" aria-label="Tufte TUI">
-      <div class="tufte-main">
-        <div class="tufte-heading">
-          <div>
-            <div class="section-label">Tufte TUI</div>
-            <h2>Evidence first, ornament last.</h2>
-          </div>
-          <div class="tufte-command">control-tower --live --plain-english</div>
-        </div>
-        <div class="tufte-ledger" id="tufte-ledger"><div class="empty">Waiting for first pulse...</div></div>
-      </div>
-      <aside class="tufte-margin" id="tufte-margin" aria-label="Tufte margin notes"></aside>
-    </section>
-
+  <!-- VERSION_STACK_START -->
+  <section class="mock-stack" aria-label="Dashboard version">
+    <!-- DENSE_VERSION_START -->
     <section class="dense-v4" id="dense-v4" aria-label="Control Tower Dense v4">
       <div class="dense-head">
         <div>
@@ -1958,7 +1833,9 @@
       </div>
       <div class="dense-lanes" id="dense-lanes"><div class="empty">Waiting for first pulse...</div></div>
     </section>
+    <!-- DENSE_VERSION_END -->
 
+    <!-- CALM_VERSION_START -->
     <section class="calm-version" id="calm-version" aria-label="Control Tower Calm">
       <div class="calm-copy">
         <div class="section-label">Control Tower Calm</div>
@@ -1968,7 +1845,9 @@
       </div>
       <aside class="calm-next" id="calm-next" aria-label="Next calm action"></aside>
     </section>
+    <!-- CALM_VERSION_END -->
   </section>
+  <!-- VERSION_STACK_END -->
 
   <section class="controls" aria-label="Dashboard filters">
     <div class="triage-strip" id="triage-strip"></div>
@@ -2033,8 +1912,10 @@
 
 <script>
   window.__INITIAL_STATE__ = null;
+  window.__DASHBOARD_VERSION__ = 'overview';
 
   const $ = (id) => document.getElementById(id);
+  const dashboardVersion = window.__DASHBOARD_VERSION__ || 'overview';
 
   let latestState = null;
   let selectedKey = null;
@@ -2311,43 +2192,6 @@
   function latestPulseText(agent) {
     const pulseEvent = latestEvent(agent);
     return pulseEvent ? pulseEvent.text : agent.goal || 'No pulse yet.';
-  }
-
-  function renderTufteTui(dashboardState) {
-    const tufteLedger = $('tufte-ledger');
-    const tufteMargin = $('tufte-margin');
-    if (!tufteLedger || !tufteMargin) return;
-
-    const agentList = dashboardState.agents || [];
-    const attentionCount = agentList.filter((agent) => triageOf(agent) === 'attention').length;
-    const workingCount = agentList.filter((agent) => agent.state === 'working').length;
-    const totalCount = agentList.length;
-
-    if (!agentList.length) {
-      tufteLedger.innerHTML = '<div class="empty">No live pulses yet.</div>';
-    } else {
-      tufteLedger.innerHTML = agentList.slice(0, 6).map((agent, agentIndex) => (
-        '<div class="tufte-row">'
-        + '<div class="tufte-index">' + String(agentIndex + 1).padStart(2, '0') + '</div>'
-        + '<div class="tufte-task">' + escapeHtml(agent.task) + '</div>'
-        + '<div class="tufte-state">' + escapeHtml(stateLabel(agent)) + '</div>'
-        + '<div class="tufte-progress">' + escapeHtml(checkpointSummary(agent)) + '</div>'
-        + '<div class="tufte-note">' + escapeHtml(latestPulseText(agent)) + '</div>'
-        + '</div>'
-      )).join('');
-    }
-
-    const marginNotes = [
-      { label: 'needs supervisor', count: attentionCount, detail: totalCount ? attentionCount + ' of ' + totalCount + ' lanes' : 'no lanes yet' },
-      { label: 'working now', count: workingCount, detail: 'live pulses still arriving' },
-      { label: 'spend seen', count: formatCost(dashboardState.costUsdTotal || 0), detail: formatTokens(dashboardState.tokensTotal || 0) + ' tokens' },
-    ];
-
-    tufteMargin.innerHTML = marginNotes.map((note) => (
-      '<div class="margin-note"><strong>' + escapeHtml(note.count) + '</strong>'
-      + '<span>' + escapeHtml(note.label) + '</span><br>'
-      + '<span>' + escapeHtml(note.detail) + '</span></div>'
-    )).join('');
   }
 
   function renderDenseV4(dashboardState) {
@@ -2728,9 +2572,8 @@
     renderFilters(state);
     renderInspector(state);
     renderAgents(state);
-    renderTufteTui(state);
-    renderDenseV4(state);
-    renderCalmVersion(state);
+    if (dashboardVersion === 'dense-v4') renderDenseV4(state);
+    if (dashboardVersion === 'calm') renderCalmVersion(state);
     renderSources(state);
     renderCommits(state);
     renderIcons();

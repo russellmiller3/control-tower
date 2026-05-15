@@ -130,24 +130,71 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   assert.match(themedHtml, /state: 'dormant'/);
   assert.match(themedHtml, /3 agents are working/);
   assert.match(themedHtml, /2\/4 checkpoints/);
-  assert.match(themedHtml, /Tufte TUI/);
-  assert.match(themedHtml, /id="tufte-tui"/);
-  assert.match(themedHtml, /id="tufte-ledger"/);
-  assert.match(themedHtml, /Control Tower Dense v4/);
-  assert.match(themedHtml, /id="dense-v4"/);
-  assert.match(themedHtml, /id="dense-lanes"/);
-  assert.match(themedHtml, /function renderTufteTui\(dashboardState\)/);
-  assert.match(themedHtml, /function renderDenseV4\(dashboardState\)/);
-  assert.match(themedHtml, /Control Tower Calm/);
-  assert.match(themedHtml, /id="calm-version"/);
-  assert.match(themedHtml, /id="calm-agenda"/);
-  assert.match(themedHtml, /function renderCalmVersion\(dashboardState\)/);
+  assert.doesNotMatch(themedHtml, /id="tufte-tui"/);
+  assert.doesNotMatch(themedHtml, /id="dense-v4"/);
+  assert.doesNotMatch(themedHtml, /id="calm-version"/);
+
+  const densePage = await fetch(`http://127.0.0.1:${port}/versions/dense-v4?theme=light&demo`);
+  assert.equal(densePage.status, 200);
+  const denseHtml = await densePage.text();
+  assert.match(denseHtml, /Control Tower Dense v4/);
+  assert.match(denseHtml, /id="dense-v4"/);
+  assert.match(denseHtml, /id="dense-lanes"/);
+  assert.match(denseHtml, /function renderDenseV4\(dashboardState\)/);
+  assert.doesNotMatch(denseHtml, /id="tufte-tui"/);
+  assert.doesNotMatch(denseHtml, /id="calm-version"/);
+
+  const calmPage = await fetch(`http://127.0.0.1:${port}/versions/calm?theme=light&demo`);
+  assert.equal(calmPage.status, 200);
+  const calmHtml = await calmPage.text();
+  assert.match(calmHtml, /Control Tower Calm/);
+  assert.match(calmHtml, /id="calm-version"/);
+  assert.match(calmHtml, /id="calm-agenda"/);
+  assert.match(calmHtml, /function renderCalmVersion\(dashboardState\)/);
+  assert.doesNotMatch(calmHtml, /id="tufte-tui"/);
+  assert.doesNotMatch(calmHtml, /id="dense-v4"/);
+
+  const tufteWebPage = await fetch(`http://127.0.0.1:${port}/versions/tufte-tui?theme=light&demo`);
+  assert.equal(tufteWebPage.status, 404);
 
   const icon = await fetch(`http://127.0.0.1:${port}/assets/control-tower.svg`);
   assert.equal(icon.status, 200);
   const iconSvg = await icon.text();
   assert.match(iconSvg, /<svg/);
   assert.match(iconSvg, /Control Tower icon/);
+});
+
+test('renders the Tufte TUI as terminal output instead of a web panel', () => {
+  const { renderTufteTerminal } = require(path.join(__dirname, 'tufte-tui.cjs'));
+  const terminalDashboard = renderTufteTerminal({
+    branch: 'feature/separate-dashboard-versions',
+    agents: [
+      {
+        task: 'Phase 1',
+        state: 'working',
+        sourceLabel: 'Codex',
+        progress: { summary: '2/4 checkpoints' },
+        goal: 'Separate the mocks so Russell can compare them cleanly.',
+        lastEmitText: 'Progress: 2/4 - Browser route is green.',
+      },
+      {
+        task: 'Phase 2',
+        state: 'completed',
+        sourceLabel: 'Codex',
+        progress: { summary: '4/4 checkpoints' },
+        goal: 'Move the Tufte version to the terminal.',
+        lastEmitText: 'All checks passed.',
+      },
+    ],
+  });
+
+  assert.match(terminalDashboard, /TUFTE TUI/);
+  assert.match(terminalDashboard, /feature\/separate-dashboard-versions/);
+  assert.match(terminalDashboard, /Phase 1/);
+  assert.match(terminalDashboard, /2\/4 checkpoints/);
+  assert.match(terminalDashboard, /Move the Tufte version to the terminal/);
+  assert.doesNotMatch(terminalDashboard, /<section/);
+  assert.doesNotMatch(terminalDashboard, /id="tufte-tui"/);
 });
 
 test('ships a Windows desktop shortcut launcher script', () => {

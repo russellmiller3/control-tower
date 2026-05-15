@@ -3,7 +3,9 @@
  * Control Tower server - port 9999 by default.
  *
  * Routes:
- *   GET  /              -> index.html
+ *   GET  /              -> main dashboard
+ *   GET  /versions/dense-v4 -> dense web mock
+ *   GET  /versions/calm -> calm web mock
  *   GET  /api/state     -> snapshot {agents, commits, branch}
  *   GET  /api/stream    -> SSE stream pushing pulse events + state ticks
  *   POST /api/check-status -> writes a Supervisor inspection request
@@ -343,6 +345,35 @@ function buildState() {
 
 const indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 
+function pageVersionFor(requestPath) {
+  if (requestPath === '/' || requestPath === '/index.html') return 'overview';
+  if (requestPath === '/versions/dense-v4' || requestPath === '/dense-v4') return 'dense-v4';
+  if (requestPath === '/versions/calm' || requestPath === '/calm') return 'calm';
+  return '';
+}
+
+function stripMarkedBlock(pageHtml, markerName) {
+  const markerPattern = new RegExp(`\\s*<!-- ${markerName}_START -->[\\s\\S]*?<!-- ${markerName}_END -->`, 'g');
+  return pageHtml.replace(markerPattern, '');
+}
+
+function pageHtmlFor(pageVersion) {
+  const initialState = JSON.stringify(buildState()).replace(/</g, '\\u003c');
+  let pageHtml = indexHtml
+    .replace('window.__INITIAL_STATE__ = null;', `window.__INITIAL_STATE__ = ${initialState};`)
+    .replace("window.__DASHBOARD_VERSION__ = 'overview';", `window.__DASHBOARD_VERSION__ = '${pageVersion}';`);
+
+  if (pageVersion === 'overview') {
+    pageHtml = stripMarkedBlock(pageHtml, 'VERSION_STACK');
+  } else if (pageVersion === 'dense-v4') {
+    pageHtml = stripMarkedBlock(pageHtml, 'CALM_VERSION');
+  } else if (pageVersion === 'calm') {
+    pageHtml = stripMarkedBlock(pageHtml, 'DENSE_VERSION');
+  }
+
+  return pageHtml;
+}
+
 const sseClients = new Set();
 function broadcastState() {
   if (sseClients.size === 0) return;
@@ -390,14 +421,10 @@ setInterval(broadcastState, 5000);
 
 const server = http.createServer((req, res) => {
   const requestUrl = new URL(req.url, 'http://127.0.0.1');
-  if (requestUrl.pathname === '/' || requestUrl.pathname === '/index.html') {
-    const initialState = JSON.stringify(buildState()).replace(/</g, '\\u003c');
-    const hydratedHtml = indexHtml.replace(
-      'window.__INITIAL_STATE__ = null;',
-      `window.__INITIAL_STATE__ = ${initialState};`
-    );
+  const pageVersion = pageVersionFor(requestUrl.pathname);
+  if (pageVersion) {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-    res.end(hydratedHtml);
+    res.end(pageHtmlFor(pageVersion));
     return;
   }
 
