@@ -21,6 +21,7 @@ const { execFileSync } = require('node:child_process');
 const ROOT = path.resolve(__dirname);
 const APP_ROOT = path.resolve(ROOT, '..');
 const ASSET_ROOT = path.join(ROOT, 'assets');
+const MOCKS_ROOT = path.join(APP_ROOT, 'mocks');
 const HOME = os.homedir();
 const PORT = Number(process.env.CONTROL_TOWER_PORT || process.env.AGENT_DASHBOARD_PORT || 9999);
 const STALL_MS = 3 * 60 * 1000;
@@ -491,6 +492,24 @@ const server = http.createServer((req, res) => {
     res.write(`data: ${JSON.stringify(buildState())}\n\n`);
     sseClients.add(res);
     req.on('close', () => sseClients.delete(res));
+    return;
+  }
+
+  if (requestUrl.pathname.startsWith('/mocks/')) {
+    const relativePath = decodeURIComponent(requestUrl.pathname.replace(/^\/mocks\//, ''));
+    const filePath = path.resolve(MOCKS_ROOT, relativePath);
+    if (!filePath.startsWith(MOCKS_ROOT + path.sep) && filePath !== MOCKS_ROOT) {
+      res.writeHead(404);
+      res.end('not found');
+      return;
+    }
+    if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+      res.writeHead(404);
+      res.end('not found');
+      return;
+    }
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    fs.createReadStream(filePath).pipe(res);
     return;
   }
 
