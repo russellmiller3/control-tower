@@ -220,6 +220,7 @@ Russell's rule (added 2026-05-13): every background agent must emit plain-Englis
 
 Fix one of two ways:
 1. (Preferred) Add a pulse-emission section to the brief. Reference C:/Users/rmill/Desktop/programming/.claude/state/AGENT-PULSE-CONTRACT.md and tell the agent: "Emit narrative pulses to programming/.claude/state/agent-pulse.log in the format [Task Name] Agent: <plain English status>. Cadence: every 2-3 tool calls or every commit."
+   Also require checkpoint progress: "Plan: 4 checkpoints - first proof, main change, verification, docs" before work starts, then "Progress: 1/4 - first proof landed" as each checkpoint clears.
 2. If this agent genuinely doesn't need pulses (read-only / one-shot / under-30-second job), add the marker NO_PULSE_CONTRACT anywhere in the prompt.
 
 Re-attempt the Agent spawn with the contract included.`;

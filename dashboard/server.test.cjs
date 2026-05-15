@@ -130,6 +130,14 @@ test('discovers a Windows Codex pulse log and writes Supervisor checks back to i
   assert.match(themedHtml, /state: 'dormant'/);
   assert.match(themedHtml, /3 agents are working/);
   assert.match(themedHtml, /2\/4 checkpoints/);
+  assert.match(themedHtml, /Tufte TUI/);
+  assert.match(themedHtml, /id="tufte-tui"/);
+  assert.match(themedHtml, /id="tufte-ledger"/);
+  assert.match(themedHtml, /Control Tower Dense v4/);
+  assert.match(themedHtml, /id="dense-v4"/);
+  assert.match(themedHtml, /id="dense-lanes"/);
+  assert.match(themedHtml, /function renderTufteTui\(dashboardState\)/);
+  assert.match(themedHtml, /function renderDenseV4\(dashboardState\)/);
 
   const icon = await fetch(`http://127.0.0.1:${port}/assets/control-tower.svg`);
   assert.equal(icon.status, 200);

@@ -521,6 +521,210 @@
     color: var(--red);
   }
 
+  .mock-stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .tufte-tui,
+  .dense-v4 {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    min-width: 0;
+  }
+
+  .tufte-tui {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 0.34fr);
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .tufte-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 12px;
+  }
+
+  .tufte-heading h2,
+  .dense-v4 h2 {
+    font-family: var(--serif);
+    color: var(--text-strong);
+    margin: 0;
+    letter-spacing: 0;
+    line-height: 0.98;
+  }
+
+  .tufte-heading h2 {
+    font-size: clamp(24px, 2.2vw, 36px);
+  }
+
+  .tufte-command {
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .tufte-ledger {
+    display: grid;
+    gap: 7px;
+    font-family: var(--mono);
+  }
+
+  .tufte-row {
+    display: grid;
+    grid-template-columns: 34px minmax(130px, 0.52fr) minmax(70px, 0.18fr) minmax(86px, 0.18fr) minmax(0, 1fr);
+    gap: 9px;
+    align-items: start;
+    border-top: 1px solid var(--line);
+    padding-top: 7px;
+    font-size: 11px;
+    min-width: 0;
+  }
+
+  .tufte-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .tufte-index,
+  .tufte-state,
+  .tufte-progress,
+  .tufte-note {
+    color: var(--muted);
+  }
+
+  .tufte-task {
+    color: var(--text-strong);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .tufte-note {
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+
+  .tufte-margin {
+    border-left: 1px solid var(--line);
+    padding-left: 14px;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+  }
+
+  .margin-note {
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 9px;
+    font-family: var(--serif);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  .margin-note strong {
+    display: block;
+    color: var(--text-strong);
+    font-size: 22px;
+    line-height: 0.95;
+    margin-bottom: 4px;
+  }
+
+  .dense-v4 {
+    padding: 12px;
+  }
+
+  .dense-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 10px;
+  }
+
+  .dense-v4 h2 {
+    font-size: clamp(22px, 2vw, 30px);
+  }
+
+  .dense-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+
+  .dense-chip {
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--panel-2);
+    padding: 5px 7px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .dense-chip strong {
+    color: var(--text-strong);
+    margin-right: 4px;
+  }
+
+  .dense-lanes {
+    display: grid;
+    gap: 6px;
+  }
+
+  .dense-lane {
+    display: grid;
+    grid-template-columns: 10px minmax(120px, 0.52fr) minmax(90px, 0.2fr) minmax(76px, 0.16fr) minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 8px;
+    min-height: 44px;
+    font-size: 11px;
+  }
+
+  .dense-lane .status-dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .dense-task {
+    color: var(--text-strong);
+    font-family: var(--mono);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .dense-meta,
+  .dense-checkpoint,
+  .dense-last {
+    color: var(--muted);
+    font-family: var(--mono);
+    overflow-wrap: anywhere;
+  }
+
+  .dense-last {
+    color: var(--text);
+    line-height: 1.3;
+  }
+
   .control-band {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
@@ -676,7 +880,7 @@
 
   .summary-strip {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(92px, 1fr));
     gap: 7px;
   }
 
@@ -1432,6 +1636,7 @@
 
   @media (max-width: 1180px) {
     .control-band,
+    .mock-stack,
     .positioning {
       grid-template-columns: 1fr;
     }
@@ -1456,18 +1661,59 @@
     .right-rail {
       position: static;
     }
+    .tufte-tui {
+      grid-template-columns: 1fr;
+    }
+    .tufte-margin {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+      padding-left: 0;
+      padding-top: 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 780px) {
+    html,
+    body {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
     body {
       padding: 16px 14px 176px;
+    }
+    .shell,
+    .mission-card,
+    .radar-panel,
+    .health,
+    .tufte-tui,
+    .dense-v4,
+    footer.portfolio {
+      max-width: 100%;
+      min-width: 0;
+    }
+    h1,
+    .mission-card h2,
+    .tufte-heading h2,
+    .dense-v4 h2 {
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+    .mission-card h2 {
+      max-width: 11.5em;
+      font-size: 25px;
+      line-height: 1.02;
+    }
+    .meta-pill {
+      max-width: 100%;
     }
     .topbar,
     .control-band,
     .positioning,
     .controls,
+    .right-rail,
     footer.portfolio {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .top-actions,
     .contact-links {
@@ -1480,8 +1726,18 @@
     .overview,
     .summary-strip,
     .agents-grid,
+    .tufte-margin,
     .secondary-actions {
       grid-template-columns: 1fr;
+    }
+    .tufte-heading,
+    .dense-head,
+    .tufte-row,
+    .dense-lane {
+      grid-template-columns: 1fr;
+    }
+    .tufte-command {
+      white-space: normal;
     }
     footer.portfolio {
       min-height: 156px;
@@ -1578,6 +1834,33 @@
         <div class="overview-pill"><div class="metric-label">Tokens</div><strong id="metric-tokens">--</strong></div>
       </div>
     </div>
+  </section>
+
+  <section class="mock-stack" aria-label="Wired dashboard mocks">
+    <section class="tufte-tui" id="tufte-tui" aria-label="Tufte TUI">
+      <div class="tufte-main">
+        <div class="tufte-heading">
+          <div>
+            <div class="section-label">Tufte TUI</div>
+            <h2>Evidence first, ornament last.</h2>
+          </div>
+          <div class="tufte-command">control-tower --live --plain-english</div>
+        </div>
+        <div class="tufte-ledger" id="tufte-ledger"><div class="empty">Waiting for first pulse...</div></div>
+      </div>
+      <aside class="tufte-margin" id="tufte-margin" aria-label="Tufte margin notes"></aside>
+    </section>
+
+    <section class="dense-v4" id="dense-v4" aria-label="Control Tower Dense v4">
+      <div class="dense-head">
+        <div>
+          <div class="section-label">Control Tower Dense v4</div>
+          <h2>Many lanes, low ceremony.</h2>
+        </div>
+        <div class="dense-summary" id="dense-summary"></div>
+      </div>
+      <div class="dense-lanes" id="dense-lanes"><div class="empty">Waiting for first pulse...</div></div>
+    </section>
   </section>
 
   <section class="controls" aria-label="Dashboard filters">
@@ -1913,6 +2196,90 @@
     return (agent.events || [])[0] || null;
   }
 
+  function checkpointSummary(agent) {
+    if (!agent.progress) return 'plan pending';
+    return agent.progress.summary + ' / ' + agent.progress.pct + '%';
+  }
+
+  function latestPulseText(agent) {
+    const pulseEvent = latestEvent(agent);
+    return pulseEvent ? pulseEvent.text : agent.goal || 'No pulse yet.';
+  }
+
+  function renderTufteTui(dashboardState) {
+    const tufteLedger = $('tufte-ledger');
+    const tufteMargin = $('tufte-margin');
+    if (!tufteLedger || !tufteMargin) return;
+
+    const agentList = dashboardState.agents || [];
+    const attentionCount = agentList.filter((agent) => triageOf(agent) === 'attention').length;
+    const workingCount = agentList.filter((agent) => agent.state === 'working').length;
+    const totalCount = agentList.length;
+
+    if (!agentList.length) {
+      tufteLedger.innerHTML = '<div class="empty">No live pulses yet.</div>';
+    } else {
+      tufteLedger.innerHTML = agentList.slice(0, 6).map((agent, agentIndex) => (
+        '<div class="tufte-row">'
+        + '<div class="tufte-index">' + String(agentIndex + 1).padStart(2, '0') + '</div>'
+        + '<div class="tufte-task">' + escapeHtml(agent.task) + '</div>'
+        + '<div class="tufte-state">' + escapeHtml(stateLabel(agent)) + '</div>'
+        + '<div class="tufte-progress">' + escapeHtml(checkpointSummary(agent)) + '</div>'
+        + '<div class="tufte-note">' + escapeHtml(latestPulseText(agent)) + '</div>'
+        + '</div>'
+      )).join('');
+    }
+
+    const marginNotes = [
+      { label: 'needs supervisor', count: attentionCount, detail: totalCount ? attentionCount + ' of ' + totalCount + ' lanes' : 'no lanes yet' },
+      { label: 'working now', count: workingCount, detail: 'live pulses still arriving' },
+      { label: 'spend seen', count: formatCost(dashboardState.costUsdTotal || 0), detail: formatTokens(dashboardState.tokensTotal || 0) + ' tokens' },
+    ];
+
+    tufteMargin.innerHTML = marginNotes.map((note) => (
+      '<div class="margin-note"><strong>' + escapeHtml(note.count) + '</strong>'
+      + '<span>' + escapeHtml(note.label) + '</span><br>'
+      + '<span>' + escapeHtml(note.detail) + '</span></div>'
+    )).join('');
+  }
+
+  function renderDenseV4(dashboardState) {
+    const denseLanes = $('dense-lanes');
+    const denseSummary = $('dense-summary');
+    if (!denseLanes || !denseSummary) return;
+
+    const agentList = dashboardState.agents || [];
+    const attentionCount = agentList.filter((agent) => triageOf(agent) === 'attention').length;
+    const completedCount = agentList.filter((agent) => agent.state === 'completed').length;
+    const workingCount = agentList.filter((agent) => agent.state === 'working').length;
+
+    const summaryChips = [
+      { label: 'lanes', count: agentList.length },
+      { label: 'working', count: workingCount },
+      { label: 'ready', count: completedCount },
+      { label: 'rescue', count: attentionCount },
+    ];
+
+    denseSummary.innerHTML = summaryChips.map((chip) => (
+      '<span class="dense-chip"><strong>' + escapeHtml(chip.count) + '</strong>' + escapeHtml(chip.label) + '</span>'
+    )).join('');
+
+    if (!agentList.length) {
+      denseLanes.innerHTML = '<div class="empty">No live pulses yet.</div>';
+      return;
+    }
+
+    denseLanes.innerHTML = agentList.slice(0, 8).map((agent) => (
+      '<div class="dense-lane">'
+      + '<span class="status-dot status-' + escapeHtml(agent.state) + '"></span>'
+      + '<div class="dense-task">' + escapeHtml(agent.task) + '</div>'
+      + '<div class="dense-meta">' + escapeHtml(agent.sourceLabel || 'Agent') + ' / ' + escapeHtml(stateLabel(agent)) + '</div>'
+      + '<div class="dense-checkpoint">' + escapeHtml(checkpointSummary(agent)) + '</div>'
+      + '<div class="dense-last">' + escapeHtml(latestPulseText(agent)) + '</div>'
+      + '</div>'
+    )).join('');
+  }
+
   function renderOverview(state) {
     const agents = state.agents || [];
     const total = agents.length;
@@ -2212,6 +2579,8 @@
     renderFilters(state);
     renderInspector(state);
     renderAgents(state);
+    renderTufteTui(state);
+    renderDenseV4(state);
     renderSources(state);
     renderCommits(state);
     renderIcons();

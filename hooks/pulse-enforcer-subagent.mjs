@@ -88,6 +88,7 @@ Russell's rule: every background agent must emit plain-English progress events t
 Before completing, append at least one summary pulse describing what you accomplished + any red flags for follow-up work. Use this format:
 
 [<ISO timestamp>] [<TASK NAME from your brief>] Agent: <plain English summary of what you did, what tests landed, any open issues>
+[<ISO timestamp>] [<TASK NAME from your brief>] Agent: Progress: <current>/<total> - <checkpoint that just cleared>
 
 How (bash):
   PULSE=/c/Users/rmill/Desktop/programming/.claude/state/agent-pulse.log
