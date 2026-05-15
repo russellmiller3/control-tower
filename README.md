@@ -13,6 +13,8 @@ checkpoint progress, stalled-agent rescue, and token/cost visibility per agent.
 
 ![Control Tower preview](./preview-active-agents.png)
 
+**See it working (no agents needed):** start the server, then open `http://localhost:9999/?demo&theme=light` — four demo agents populate the board with working, dormant, and needs-supervisor states so you can explore the inspector and triage flow without running real agents.
+
 ## What you get
 
 - **Hook-enforced web board at `localhost:9999`** - live agent cards, hook health, run health, and detail inspector.
@@ -109,6 +111,8 @@ node dashboard/server.cjs
 ```
 
 Open `http://localhost:9999` in your browser. Leave the tab open.
+
+To see the dashboard populated without running real agents, open `http://localhost:9999/?demo&theme=light` — four demo agents load instantly.
 
 Optional environment variables:
 
