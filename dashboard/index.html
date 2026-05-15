@@ -725,6 +725,99 @@
     line-height: 1.3;
   }
 
+  .calm-version {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 0.72fr) minmax(280px, 0.28fr);
+    gap: 12px;
+    align-items: start;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px;
+    min-width: 0;
+  }
+
+  .calm-copy h2 {
+    font-family: var(--serif);
+    color: var(--text-strong);
+    font-size: clamp(24px, 2.2vw, 34px);
+    line-height: 1;
+    letter-spacing: 0;
+    margin: 4px 0 7px;
+  }
+
+  .calm-copy p {
+    color: var(--muted);
+    font-size: 13px;
+    max-width: 680px;
+    margin: 0 0 12px;
+  }
+
+  .calm-agenda {
+    display: grid;
+    gap: 7px;
+  }
+
+  .calm-row {
+    display: grid;
+    grid-template-columns: 10px minmax(120px, 0.4fr) minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 8px 9px;
+    min-width: 0;
+  }
+
+  .calm-task {
+    color: var(--text-strong);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .calm-goal {
+    color: var(--muted);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .calm-state {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .calm-next {
+    border: 1px solid var(--line-strong);
+    background: var(--panel-2);
+    border-radius: var(--radius);
+    padding: 12px;
+    min-width: 0;
+  }
+
+  .calm-next strong {
+    display: block;
+    color: var(--text-strong);
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .calm-next span {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
   .control-band {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
@@ -1688,6 +1781,7 @@
     .health,
     .tufte-tui,
     .dense-v4,
+    .calm-version,
     footer.portfolio {
       max-width: 100%;
       min-width: 0;
@@ -1695,7 +1789,8 @@
     h1,
     .mission-card h2,
     .tufte-heading h2,
-    .dense-v4 h2 {
+    .dense-v4 h2,
+    .calm-copy h2 {
       overflow-wrap: anywhere;
       white-space: normal;
     }
@@ -1712,6 +1807,7 @@
     .positioning,
     .controls,
     .right-rail,
+    .calm-version,
     footer.portfolio {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -1733,7 +1829,8 @@
     .tufte-heading,
     .dense-head,
     .tufte-row,
-    .dense-lane {
+    .dense-lane,
+    .calm-row {
       grid-template-columns: 1fr;
     }
     .tufte-command {
@@ -1860,6 +1957,16 @@
         <div class="dense-summary" id="dense-summary"></div>
       </div>
       <div class="dense-lanes" id="dense-lanes"><div class="empty">Waiting for first pulse...</div></div>
+    </section>
+
+    <section class="calm-version" id="calm-version" aria-label="Control Tower Calm">
+      <div class="calm-copy">
+        <div class="section-label">Control Tower Calm</div>
+        <h2>Quiet review mode.</h2>
+        <p id="calm-summary">Waiting for live agent traffic.</p>
+        <div class="calm-agenda" id="calm-agenda"><div class="empty">No lanes yet.</div></div>
+      </div>
+      <aside class="calm-next" id="calm-next" aria-label="Next calm action"></aside>
     </section>
   </section>
 
@@ -2280,6 +2387,48 @@
     )).join('');
   }
 
+  function renderCalmVersion(dashboardState) {
+    const calmSummary = $('calm-summary');
+    const calmAgenda = $('calm-agenda');
+    const calmNext = $('calm-next');
+    if (!calmSummary || !calmAgenda || !calmNext) return;
+
+    const agentList = dashboardState.agents || [];
+    const attentionAgents = agentList.filter((agent) => triageOf(agent) === 'attention');
+    const readyAgents = agentList.filter((agent) => triageOf(agent) === 'ready');
+    const workingAgents = agentList.filter((agent) => agent.state === 'working');
+    const reviewAgent = attentionAgents[0] || readyAgents[0] || workingAgents[0] || agentList[0] || null;
+
+    if (!agentList.length) {
+      calmSummary.textContent = 'No live lanes yet. Start agents and the calm view will summarize the run.';
+      calmAgenda.innerHTML = '<div class="empty">No lanes yet.</div>';
+      calmNext.innerHTML = '<strong>Stand by</strong><span>Waiting for the first plain-English pulse.</span>';
+      return;
+    }
+
+    calmSummary.textContent = attentionAgents.length + ' lane' + (attentionAgents.length === 1 ? ' needs' : 's need')
+      + ' attention. ' + workingAgents.length + ' still working. ' + readyAgents.length + ' ready to review.';
+
+    calmAgenda.innerHTML = agentList.slice(0, 5).map((agent) => (
+      '<div class="calm-row">'
+      + '<span class="status-dot status-' + escapeHtml(agent.state) + '"></span>'
+      + '<div class="calm-task">' + escapeHtml(agent.task) + '</div>'
+      + '<div class="calm-goal">' + escapeHtml(agent.goal || latestPulseText(agent)) + '</div>'
+      + '<div class="calm-state">' + escapeHtml(stateLabel(agent)) + '</div>'
+      + '</div>'
+    )).join('');
+
+    if (reviewAgent) {
+      const nextLabel = triageOf(reviewAgent) === 'attention'
+        ? 'Ask Supervisor'
+        : reviewAgent.state === 'completed'
+          ? 'Review merge'
+          : 'Keep watching';
+      calmNext.innerHTML = '<strong>' + escapeHtml(nextLabel) + '</strong>'
+        + '<span>' + escapeHtml(reviewAgent.task) + ': ' + escapeHtml(latestPulseText(reviewAgent)) + '</span>';
+    }
+  }
+
   function renderOverview(state) {
     const agents = state.agents || [];
     const total = agents.length;
@@ -2581,6 +2730,7 @@
     renderAgents(state);
     renderTufteTui(state);
     renderDenseV4(state);
+    renderCalmVersion(state);
     renderSources(state);
     renderCommits(state);
     renderIcons();
