@@ -1,10 +1,64 @@
 #!/usr/bin/env node
 const DEFAULT_STATE_URL = 'http://127.0.0.1:9999/api/state';
+const LEFT_WIDTH = 62;
+const RIGHT_WIDTH = 31;
 
 function cleanCell(cellContent, width) {
-  const normalizedContent = String(cellContent || '').replace(/\s+/g, ' ').trim();
+  const normalizedContent = String(cellContent ?? '').replace(/\s+/g, ' ').trim();
   if (normalizedContent.length <= width) return normalizedContent.padEnd(width, ' ');
   return normalizedContent.slice(0, Math.max(0, width - 1)) + '.';
+}
+
+function normalizeCopy(copy) {
+  return String(copy ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function padLine(lineContent, width) {
+  const rawLine = String(lineContent ?? '');
+  if (rawLine.length <= width) return rawLine.padEnd(width, ' ');
+  return rawLine.slice(0, Math.max(0, width - 1)) + '.';
+}
+
+function wrapCopy(copy, width) {
+  const words = normalizeCopy(copy).split(' ').filter(Boolean);
+  const wrappedLines = [];
+  let currentLine = '';
+  for (const word of words) {
+    const candidateLine = currentLine ? currentLine + ' ' + word : word;
+    if (candidateLine.length <= width) {
+      currentLine = candidateLine;
+    } else {
+      if (currentLine) wrappedLines.push(currentLine);
+      currentLine = word.length > width ? word.slice(0, width - 1) + '.' : word;
+    }
+  }
+  if (currentLine) wrappedLines.push(currentLine);
+  return wrappedLines.length ? wrappedLines : [''];
+}
+
+function combineColumns(leftLines, rightLines) {
+  const rowCount = Math.max(leftLines.length, rightLines.length);
+  const renderedRows = [];
+  for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
+    renderedRows.push(padLine(leftLines[rowIndex] || '', LEFT_WIDTH) + '  ' + (rightLines[rowIndex] || ''));
+  }
+  return renderedRows;
+}
+
+function formatCost(costUsd) {
+  const spend = Number(costUsd || 0);
+  return '$' + spend.toFixed(spend >= 10 ? 0 : 2);
+}
+
+function formatTokens(tokenCount) {
+  const count = Number(tokenCount || 0);
+  if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
+  if (count >= 1000) return (count / 1000).toFixed(1) + 'k';
+  return String(count);
+}
+
+function needsSupervisor(agent) {
+  return agent.state === 'silent' || agent.state === 'dormant' || agent.state === 'failed';
 }
 
 function checkpointLabel(agent) {
@@ -17,45 +71,69 @@ function latestPulseLine(agent) {
   return agent.lastEmitText || (agent.events && agent.events[0] && agent.events[0].text) || agent.goal || 'No pulse yet.';
 }
 
-function agentLine(agent, ordinal) {
-  return [
-    String(ordinal + 1).padStart(2, '0'),
-    cleanCell(agent.state || 'unknown', 10),
-    cleanCell(agent.sourceLabel || 'Agent', 8),
-    cleanCell(agent.task || 'untitled', 24),
-    cleanCell(checkpointLabel(agent), 17),
-    cleanCell(latestPulseLine(agent), 48),
-  ].join('  ');
+function agentLedgerLines(agent, ordinal) {
+  const ledgerLines = [
+    String(ordinal + 1).padStart(2, '0') + '  ' + normalizeCopy(agent.task || 'untitled'),
+    '    ' + normalizeCopy(agent.state || 'unknown') + ' / ' + normalizeCopy(agent.sourceLabel || 'Agent') + '    ' + checkpointLabel(agent),
+  ];
+  for (const pulseLine of wrapCopy(latestPulseLine(agent), LEFT_WIDTH - 4)) {
+    ledgerLines.push('    ' + pulseLine);
+  }
+  if (agent.goal) {
+    for (const goalLine of wrapCopy('goal: ' + agent.goal, LEFT_WIDTH - 4)) {
+      ledgerLines.push('    ' + goalLine);
+    }
+  }
+  return ledgerLines;
+}
+
+function marginNoteLines(label, count, detail) {
+  const noteLines = [
+    cleanCell(label, 20) + cleanCell(count, 8),
+  ];
+  for (const detailLine of wrapCopy(detail, RIGHT_WIDTH)) {
+    noteLines.push(detailLine);
+  }
+  return noteLines;
 }
 
 function renderTufteTerminal(statePayload) {
   const agentList = Array.isArray(statePayload.agents) ? statePayload.agents : [];
   const workingCount = agentList.filter((agent) => agent.state === 'working').length;
-  const quietCount = agentList.filter((agent) => agent.state === 'silent' || agent.state === 'dormant').length;
+  const supervisorCount = agentList.filter(needsSupervisor).length;
   const completedCount = agentList.filter((agent) => agent.state === 'completed').length;
-  const terminalLines = [
-    'TUFTE TUI',
-    'branch ' + (statePayload.branch || 'unknown') + '    agents ' + agentList.length + '    working ' + workingCount + '    quiet ' + quietCount + '    ready ' + completedCount,
+  const totalCount = agentList.length;
+  const marginLines = [
+    'margin notes',
+    '-'.repeat(RIGHT_WIDTH),
+    ...marginNoteLines('needs supervisor', supervisorCount, totalCount ? supervisorCount + ' of ' + totalCount + ' lanes' : 'no lanes yet'),
     '',
-    ' #  state       source    task                      checkpoint         latest pulse',
-    '--  ----------  --------  ------------------------  -----------------  ------------------------------------------------',
+    ...marginNoteLines('working now', workingCount, 'live pulses still arriving'),
+    '',
+    ...marginNoteLines('spend seen', formatCost(statePayload.costUsdTotal || 0), formatTokens(statePayload.tokensTotal || 0) + ' tokens'),
+  ];
+  const ledgerLines = [
+    'ledger',
+    '-'.repeat(LEFT_WIDTH),
   ];
 
   if (!agentList.length) {
-    terminalLines.push('00  waiting     Agent     no live lanes             no checkpoints    Start agents to see terminal traffic.');
+    ledgerLines.push('00  waiting for first pulse');
+    ledgerLines.push('    Start agents to see terminal traffic.');
   } else {
-    for (const [agentIndex, agent] of agentList.slice(0, 12).entries()) {
-      terminalLines.push(agentLine(agent, agentIndex));
+    for (const [agentIndex, agent] of agentList.slice(0, 8).entries()) {
+      if (agentIndex > 0) ledgerLines.push('');
+      ledgerLines.push(...agentLedgerLines(agent, agentIndex));
     }
   }
 
-  terminalLines.push('');
-  terminalLines.push('margin notes');
-  terminalLines.push('- Interrupt only when quiet is non-zero.');
-  terminalLines.push('- Review completed lanes before merging.');
-  for (const agent of agentList.slice(0, 4)) {
-    terminalLines.push('- ' + (agent.task || 'untitled') + ': ' + (agent.goal || latestPulseLine(agent)));
-  }
+  const terminalLines = [
+    cleanCell('TUFTE TUI', LEFT_WIDTH) + '  control-tower --live --plain-english',
+    'Evidence first, ornament last.',
+    'branch ' + (statePayload.branch || 'unknown') + '    agents ' + totalCount + '    working ' + workingCount + '    needs supervisor ' + supervisorCount + '    ready ' + completedCount,
+    '',
+    ...combineColumns(ledgerLines, marginLines),
+  ];
 
   return terminalLines.join('\n');
 }

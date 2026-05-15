@@ -189,8 +189,16 @@ test('renders the Tufte TUI as terminal output instead of a web panel', () => {
   });
 
   assert.match(terminalDashboard, /TUFTE TUI/);
+  assert.match(terminalDashboard, /Evidence first, ornament last\./);
+  assert.match(terminalDashboard, /control-tower --live --plain-english/);
+  assert.match(terminalDashboard, /needs supervisor/i);
+  assert.match(terminalDashboard, /needs supervisor\s+0/);
+  assert.match(terminalDashboard, /working now/i);
+  assert.match(terminalDashboard, /spend seen/i);
+  assert.match(terminalDashboard, /margin notes/i);
   assert.match(terminalDashboard, /feature\/separate-dashboard-versions/);
   assert.match(terminalDashboard, /Phase 1/);
+  assert.match(terminalDashboard, /\n {4}working \/ Codex/);
   assert.match(terminalDashboard, /2\/4 checkpoints/);
   assert.match(terminalDashboard, /Move the Tufte version to the terminal/);
   assert.doesNotMatch(terminalDashboard, /<section/);
