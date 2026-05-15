@@ -2151,6 +2151,36 @@
     });
   }
 
+  function copyTriagePrompt(agent, state, button) {
+    const diag = diagnosis(agent, state.now);
+    const lines = [
+      '[Control Tower triage request — ' + agent.task + ']',
+      '',
+      'Agent:      ' + agent.task,
+      'Source:     ' + (agent.sourceLabel || 'Agent'),
+      'State:      ' + stateLabel(agent) + ' · quiet for ' + relTime(agent.lastEmitMs, state.now),
+      'Diagnosis:  ' + diag.title,
+      '            ' + diag.body,
+      'Goal:       ' + (agent.goal || 'unknown'),
+      'Progress:   ' + checkpointSummary(agent),
+      'Last pulse: ' + latestPulseText(agent),
+      '',
+      'Please inspect this agent. Check its working branch, recent commits, and any available transcript file. Report what you find in plain English and recommend what to do next.',
+    ];
+    const prompt = lines.join('\n');
+    navigator.clipboard.writeText(prompt).then(() => {
+      showToast('Triage prompt copied', 'Paste it into Claude Code or Codex to start the investigation.');
+      if (button) {
+        const orig = button.innerHTML;
+        button.innerHTML = '<i class="icon" data-lucide="check"></i><span>Copied</span>';
+        renderIcons();
+        setTimeout(() => { button.innerHTML = orig; renderIcons(); }, 2000);
+      }
+    }).catch(() => {
+      showToast('Copy failed', 'Your browser blocked clipboard access. Check permissions.');
+    });
+  }
+
   function visibleAgents(agents) {
     return agents.filter((agent) => {
       const triageMatch = triageFilter === 'all' || triageOf(agent) === triageFilter;
@@ -2511,7 +2541,7 @@
       + '<div class="detail-actions">'
       + '<button type="button" class="action-btn primary" id="detail-supervisor" data-reset-label="Ask Supervisor Agent"><i class="icon" data-lucide="scan-search"></i><span>Ask Supervisor Agent</span></button>'
       + '<div class="secondary-actions">'
-      + '<button type="button" class="action-btn secondary" data-soft-action="Transcript paths are not in the pulse log yet. Add transcript metadata to enable this."><i class="icon" data-lucide="file-search"></i><span>Transcript</span></button>'
+      + '<button type="button" class="action-btn secondary" id="detail-copy-triage"><i class="icon" data-lucide="clipboard-copy"></i><span>Copy triage prompt</span></button>'
       + '<button type="button" class="action-btn secondary" data-soft-action="Resume needs a runner integration. This dashboard already tells you who needs it."><i class="icon" data-lucide="play"></i><span>Resume</span></button>'
       + '<button type="button" class="action-btn secondary" data-soft-action="Stopping workers needs explicit runner support. No fake kill button here."><i class="icon" data-lucide="octagon-x"></i><span>Stop</span></button>'
       + '</div></div>'
@@ -2520,6 +2550,7 @@
       }).join('') + '</div>';
 
     $('detail-supervisor').addEventListener('click', (event) => askSupervisor(agent, event.currentTarget));
+    $('detail-copy-triage').addEventListener('click', (event) => copyTriagePrompt(agent, latestState || { agents: [], now: Date.now() }, event.currentTarget));
     $('inspector-body').querySelectorAll('[data-soft-action]').forEach((button) => {
       button.addEventListener('click', () => showToast('Not wired yet', button.dataset.softAction));
     });
